@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('choose_seats') }} - {{ schedule.bus.bus_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('passenger.home') }}">{{ _('Home') }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('passenger.search', source=schedule.route.source_city, destination=schedule.route.destination_city, journey_date=schedule.journey_date) }}">{{ _('search_results_title') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ _('choose_seats') }}</li>
+        </ol>
+    </nav>
+
+    <!-- Bus Header Card -->
+    <div class="custom-card p-4 mb-4 shadow-sm">
+        <div class="row align-items-center g-3">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <h4 class="fw-bold text-dark mb-0">{{ schedule.bus.bus_name }}</h4>
+                    <span class="badge bg-secondary-subtle text-secondary font-monospace">{{ schedule.bus.bus_number }}</span>
+                    <span class="badge bg-primary-subtle text-primary">{{ schedule.bus.bus_type }}</span>
+                </div>
+                <h6 class="text-primary mb-2">
+                    {{ schedule.route.source_city }} <i class="bi bi-arrow-right mx-1"></i> {{ schedule.route.destination_city }}
+                </h6>
+                <p class="small text-muted mb-0">
+                    <i class="bi bi-calendar-event me-1"></i> {{ schedule.journey_date|format_date }} &bull; 
+                    <i class="bi bi-clock me-1"></i> {{ _('departure') }}: {{ schedule.departure_time|format_time }} &bull; 
+                    <i class="bi bi-hourglass-split me-1"></i> {{ _('duration') }}: {{ schedule.route.estimated_duration }}
+                </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="fs-4 fw-bold text-success">{{ schedule.fare|currency }}</div>
+                <small class="text-muted d-block mb-1">{{ _('per_seat') }}</small>
+                <span class="badge bg-info-subtle text-info fs-6">
+                    <i class="bi bi-check2-circle me-1"></i> {{ schedule.available_seats_count }} {{ _('seats_available') }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Layout: Seat Map on Left, Booking Summary on Right -->
+    <div class="row g-4">
+
+        <!-- Seat Grid Column -->
+        <div class="col-lg-7">
+            <div class="custom-card p-4 text-center">
+                <h5 class="fw-bold mb-3 text-dark text-start"><i class="bi bi-grid-3x3-gap me-2"></i>{{ _('bus_seat_layout') }}</h5>
+
+                <!-- Seat Legend -->
+                <div class="d-flex justify-content-center flex-wrap gap-4 mb-4 p-2 bg-light rounded-3 border">
+                    <div class="seat-legend-item">
+                        <span class="seat-sample seat available"></span>
+                        <span>{{ _('seat_available') }}</span>
+                    </div>
+                    <div class="seat-legend-item">
+                        <span class="seat-sample seat selected"></span>
+                        <span>{{ _('seat_selected') }}</span>
+                    </div>
+                    <div class="seat-legend-item">
+                        <span class="seat-sample seat booked"></span>
+                        <span>{{ _('seat_booked') }}</span>
+                    </div>
+                </div>
+
+                <!-- Bus Cabin & Seats -->
+                <div class="bus-container mx-auto" id="busSeatGrid" 
+                     data-fare="{{ schedule.fare }}" 
+                     data-schedule-id="{{ schedule.id }}"
+                     data-no-seats-text="{{ _('no_seats_selected') }}"
+                     data-max-seats-alert="{{ _('max_seats_alert') }}">
+
+                    <!-- Driver Cabin Header -->
+                    <div class="driver-cabin">
+                        <small class="text-muted fw-bold me-2">{{ _('front_driver') }}</small>
+                        <div class="steering-wheel" title="{{ _('front_driver') }}">
+                            <i class="bi bi-record-circle"></i>
+                        </div>
+                    </div>
+
+                    <!-- Render Seats in 2x2 Grid with Aisle -->
+                    {% set rows = {} %}
+                    {% for s in seats_data %}
+                        {# Extract row number #}
+                        {% set row_num = s.seat_number[:-1] %}
+                        {% if row_num not in rows %}
+                            {% set _ = rows.update({row_num: {}}) %}
+                        {% endif %}
+                        {% set _ = rows[row_num].update({s.seat_number[-1]: s}) %}
+                    {% endfor %}
+
+                    {% for r_num, letter_map in rows.items() %}
+                        <div class="seat-row">
+                            <!-- Left Seats (A & B) -->
+                            {% if 'A' in letter_map %}
+                                {% set s = letter_map['A'] %}
+                                <div class="seat {{ s.status }}" data-seat-id="{{ s.id }}" data-seat-number="{{ s.seat_number }}" title="{{ _('seat_no') }} {{ s.seat_number }}">
+                                    {{ s.seat_number }}
+                                </div>
+                            {% endif %}
+                            {% if 'B' in letter_map %}
+                                {% set s = letter_map['B'] %}
+                                <div class="seat {{ s.status }}" data-seat-id="{{ s.id }}" data-seat-number="{{ s.seat_number }}" title="{{ _('seat_no') }} {{ s.seat_number }}">
+                                    {{ s.seat_number }}
+                                </div>
+                            {% endif %}
+
+                            <!-- Middle Aisle -->
+                            <div class="aisle-gap">
+                                <i class="bi bi-distribute-vertical"></i>
+                            </div>
+
+                            <!-- Right Seats (C & D) -->
+                            {% if 'C' in letter_map %}
+                                {% set s = letter_map['C'] %}
+                                <div class="seat {{ s.status }}" data-seat-id="{{ s.id }}" data-seat-number="{{ s.seat_number }}" title="{{ _('seat_no') }} {{ s.seat_number }}">
+                                    {{ s.seat_number }}
+                                </div>
+                            {% endif %}
+                            {% if 'D' in letter_map %}
+                                {% set s = letter_map['D'] %}
+                                <div class="seat {{ s.status }}" data-seat-id="{{ s.id }}" data-seat-number="{{ s.seat_number }}" title="{{ _('seat_no') }} {{ s.seat_number }}">
+                                    {{ s.seat_number }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="text-center mt-3 pt-2 border-top">
+                        <small class="text-muted fw-bold">{{ _('back_of_bus') }}</small>
+                    </div>
+                </div>
+
+                <p class="small text-muted mt-3 mb-0">
+                    <i class="bi bi-info-circle me-1"></i> {{ _('click_seat_to_select') }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Live Selection Summary Column -->
+        <div class="col-lg-5">
+            <div class="custom-card p-4 sticky-top" style="top: 80px;">
+                <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-receipt me-2"></i>{{ _('booking_summary') }}</h5>
+
+                <div class="mb-3">
+                    <label class="text-muted small fw-semibold d-block mb-1">{{ _('selected_seats') }}:</label>
+                    <div id="selectedSeatsBadges" class="d-flex flex-wrap gap-1">
+                        <span class="text-muted small">{{ _('no_seats_selected') }}</span>
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="text-secondary">{{ _('base_fare') }}</td>
+                                <td class="text-end fw-semibold">{{ schedule.fare|currency }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary">{{ _('selected_seats_count') }}</td>
+                                <td class="text-end fw-semibold" id="selectedSeatCount">0</td>
+                            </tr>
+                            <tr class="border-top">
+                                <td class="fw-bold fs-5 text-dark pt-2">{{ _('total_amount') }}</td>
+                                <td class="text-end fw-bold fs-5 text-success pt-2" id="totalFareDisplay">₹0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info py-2 small mb-3">
+                    <i class="bi bi-shield-check me-1"></i> {{ _('realtime_lock_notice') }}
+                </div>
+
+                <button id="proceedToBookingBtn" class="btn btn-warning w-100 py-3 fw-bold text-dark shadow-sm" disabled>
+                    {{ _('proceed_to_passenger_details') }} <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/seat_selection.js') }}"></script>
+{% endblock %}

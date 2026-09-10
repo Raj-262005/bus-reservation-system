@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('admin_dashboard') }} - {{ _('Bus Reservation System') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-speedometer2 text-primary me-2"></i>{{ _('admin_dashboard') }}</h3>
+            <p class="text-muted small mb-0">{{ _('admin_sub') }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.add_bus') }}" class="btn btn-outline-primary btn-sm fw-semibold">
+                <i class="bi bi-plus-circle me-1"></i> {{ _('add_new_bus') }}
+            </a>
+            <a href="{{ url_for('admin.add_route') }}" class="btn btn-outline-secondary btn-sm fw-semibold">
+                <i class="bi bi-signpost-split me-1"></i> {{ _('add_new_route') }}
+            </a>
+            <a href="{{ url_for('admin.add_schedule') }}" class="btn btn-warning btn-sm fw-bold text-dark shadow-sm">
+                <i class="bi bi-calendar-plus me-1"></i> {{ _('add_new_schedule') }}
+            </a>
+        </div>
+    </div>
+
+    <!-- Metrics Cards Grid -->
+    <div class="row g-3 mb-4">
+        <!-- Total Revenue -->
+        <div class="col-md-3 col-sm-6">
+            <div class="custom-card p-3 border-start border-4 border-success">
+                <span class="text-muted small text-uppercase fw-semibold">{{ _('total_revenue') }}</span>
+                <h3 class="fw-bold text-success mb-0 mt-1">{{ total_revenue|currency }}</h3>
+                <small class="text-muted">{{ _('confirmed') }}</small>
+            </div>
+        </div>
+
+        <!-- Total Bookings -->
+        <div class="col-md-3 col-sm-6">
+            <div class="custom-card p-3 border-start border-4 border-primary">
+                <span class="text-muted small text-uppercase fw-semibold">{{ _('total_bookings') }}</span>
+                <h3 class="fw-bold text-primary mb-0 mt-1">{{ total_bookings }}</h3>
+                <small class="text-muted"><span class="badge bg-primary-subtle text-primary">+{{ today_bookings }} today</span></small>
+            </div>
+        </div>
+
+        <!-- Available Seats -->
+        <div class="col-md-3 col-sm-6">
+            <div class="custom-card p-3 border-start border-4 border-info">
+                <span class="text-muted small text-uppercase fw-semibold">{{ _('available_seats') }}</span>
+                <h3 class="fw-bold text-info-emphasis mb-0 mt-1">{{ available_seats_total }}</h3>
+                <small class="text-muted">{{ _('seats_available') }}</small>
+            </div>
+        </div>
+
+        <!-- Total Passengers -->
+        <div class="col-md-3 col-sm-6">
+            <div class="custom-card p-3 border-start border-4 border-warning">
+                <span class="text-muted small text-uppercase fw-semibold">{{ _('manage_users') }}</span>
+                <h3 class="fw-bold text-dark mb-0 mt-1">{{ total_passengers }}</h3>
+                <small class="text-muted">{{ _('active') }}</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <!-- Quick Stats Banner -->
+        <div class="col-md-6">
+            <div class="custom-card p-3 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-primary-subtle text-primary p-3">
+                        <i class="bi bi-bus-front fs-3"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">{{ total_buses }} {{ _('manage_buses') }}</h5>
+                        <small class="text-muted">Volvo, Scania, Mercedes luxury fleet</small>
+                    </div>
+                </div>
+                <a href="{{ url_for('admin.buses') }}" class="btn btn-outline-primary btn-sm">{{ _('manage_buses') }}</a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="custom-card p-3 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-success-subtle text-success p-3">
+                        <i class="bi bi-signpost-split fs-3"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">{{ total_routes }} {{ _('routes_management') }}</h5>
+                        <small class="text-muted">{{ _('popular_routes') }}</small>
+                    </div>
+                </div>
+                <a href="{{ url_for('admin.routes') }}" class="btn btn-outline-success btn-sm">{{ _('manage_routes') }}</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bookings Table -->
+    <div class="custom-card p-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2"></i>{{ _('recent_bookings') }}</h5>
+            <a href="{{ url_for('admin.bookings') }}" class="btn btn-primary btn-sm">{{ _('view_all_bookings') }}</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ _('booking_id') }}</th>
+                        <th>{{ _('passenger') }}</th>
+                        <th>{{ _('route') }}</th>
+                        <th>{{ _('bus') }}</th>
+                        <th>{{ _('allocated_seats') }}</th>
+                        <th>{{ _('total_amount') }}</th>
+                        <th>{{ _('status') }}</th>
+                        <th>{{ _('booked_on') }}</th>
+                        <th>{{ _('actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in recent_bookings %}
+                    <tr>
+                        <td class="font-monospace fw-bold text-primary">{{ b.booking_id }}</td>
+                        <td>
+                            <div class="fw-semibold">{{ b.primary_passenger }}</div>
+                            <small class="text-muted">{{ b.user.email }}</small>
+                        </td>
+                        <td>{{ b.schedule.route.source_city }} &rarr; {{ b.schedule.route.destination_city }}</td>
+                        <td>{{ b.schedule.bus.bus_name }}</td>
+                        <td><span class="badge bg-secondary-subtle text-secondary">{{ b.seat_numbers_list }}</span></td>
+                        <td class="fw-bold text-dark">{{ b.total_amount|currency }}</td>
+                        <td>
+                            {% if b.booking_status == 'CONFIRMED' %}
+                                <span class="badge badge-confirmed px-2 py-1">{{ _('confirmed') }}</span>
+                            {% else %}
+                                <span class="badge badge-cancelled px-2 py-1">{{ _('cancelled') }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ b.created_at|format_date }}</td>
+                        <td>
+                            <a href="{{ url_for('ticket.download_ticket', booking_id=b.booking_id) }}" class="btn btn-outline-primary btn-sm" title="{{ _('download_ticket') }}">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-3 text-muted">{{ _('no_bookings_found') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

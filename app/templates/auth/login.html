@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('login') }} - {{ _('Bus Reservation System') }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="custom-card p-4 p-md-5 shadow-sm">
+                <div class="text-center mb-4">
+                    <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                        <i class="bi bi-box-arrow-in-right fs-3"></i>
+                    </div>
+                    <h3 class="fw-bold">{{ _('welcome_back') }}</h3>
+                    <p class="text-muted small">{{ _('sign_in_sub') }}</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold">{{ _('email_address') }}</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   placeholder="name@example.com" value="{{ email or '' }}" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label fw-semibold">{{ _('password') }}</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   placeholder="{{ _('enter_password') }}" required>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="remember" name="remember" checked>
+                            <label class="form-check-label small" for="remember">{{ _('remember_me') }}</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm mb-3">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> {{ _('sign_in') }}
+                    </button>
+                </form>
+
+                <div class="text-center border-top pt-3">
+                    <p class="small text-muted mb-0">{{ _('dont_have_account') }} <a href="{{ url_for('auth.register') }}" class="text-primary fw-semibold">{{ _('register_passenger') }}</a></p>
+                </div>
+
+                <!-- Academic Quick Demo Buttons -->
+                <div class="mt-4 p-3 bg-light rounded-3 border">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <small class="fw-bold text-dark"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> {{ _('quick_demo_logins') }}</small>
+                        <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">{{ _('one_click_fill') }}</span>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-danger text-start py-1" onclick="fillCredentials('admin@busreservation.com', 'Admin@123')">
+                            <i class="bi bi-shield-lock me-1"></i> <strong>{{ _('admin') }}:</strong> admin@busreservation.com
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-info text-start py-1 text-dark" onclick="fillCredentials('operator@busreservation.com', 'Operator@123')">
+                            <i class="bi bi-truck-front me-1"></i> <strong>{{ _('operator') }}:</strong> operator@busreservation.com
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success text-start py-1" onclick="fillCredentials('passenger@busreservation.com', 'Passenger@123')">
+                            <i class="bi bi-person me-1"></i> <strong>{{ _('passenger') }}:</strong> passenger@busreservation.com
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

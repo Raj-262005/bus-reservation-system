@@ -1,0 +1,24 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment and secrets
+.env
+venv/
+env/
+ENV/
+
+# Database files
+*.db
+*.sqlite
+instance/
+
+# Generated E-Tickets
+app/static/generated_tickets/*
+!app/static/generated_tickets/.gitkeep
+
+# Pytest / IDE
+.pytest_cache/
+.vscode/
+.idea/

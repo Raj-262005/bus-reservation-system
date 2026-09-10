@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('manifest_title') }} - Schedule #{{ schedule.id }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header & Print -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-clipboard2-check-fill text-primary me-2"></i>{{ _('manifest_title') }}</h3>
+            <p class="text-muted small mb-0">{{ _('manifest_sub') }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-dark btn-sm" onclick="window.print()">
+                <i class="bi bi-printer me-1"></i> {{ _('print_manifest') }}
+            </button>
+            <a href="{{ url_for('operator.dashboard') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> {{ _('back_to_home') }}
+            </a>
+        </div>
+    </div>
+
+    <!-- Trip Details Card -->
+    <div class="custom-card p-4 mb-4 bg-light border">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <small class="text-muted d-block">{{ _('route') }}</small>
+                <strong class="fs-6 text-dark">{{ schedule.route.source_city }} &rarr; {{ schedule.route.destination_city }}</strong>
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted d-block">{{ _('date_of_journey') }} &amp; {{ _('departure') }}</small>
+                <strong>{{ schedule.journey_date|format_date }} at {{ schedule.departure_time|format_time }}</strong>
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted d-block">{{ _('bus_details') }}</small>
+                <strong>{{ schedule.bus.bus_name }}</strong> ({{ schedule.bus.bus_number }})
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted d-block">{{ _('occupancy') }}</small>
+                <strong class="text-success">{{ passengers|length }} {{ _('booked_passengers') }}</strong> ({{ schedule.bus.total_seats }} {{ _('total') }})
+            </div>
+        </div>
+    </div>
+
+    <!-- Manifest Table -->
+    <div class="custom-card p-4 shadow-sm">
+        <h5 class="fw-bold mb-3 text-dark">{{ _('passenger_manifest') }}</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px;">{{ _('seat_no') }}</th>
+                        <th>{{ _('passenger_name') }}</th>
+                        <th style="width: 80px;">{{ _('age') }}</th>
+                        <th style="width: 100px;">{{ _('gender') }}</th>
+                        <th>{{ _('booking_id') }}</th>
+                        <th>{{ _('user') }}</th>
+                        <th style="width: 120px;" class="text-center">{{ _('boarding_check') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in passengers %}
+                    <tr>
+                        <td class="fw-bold text-center bg-light fs-6">{{ p.seat_number }}</td>
+                        <td class="fw-semibold text-dark">{{ p.passenger_name }}</td>
+                        <td>{{ p.age }}</td>
+                        <td>{{ p.gender }}</td>
+                        <td class="font-monospace text-primary">{{ p.booking.booking_id }}</td>
+                        <td>
+                            <div>{{ p.booking.user.name }}</div>
+                            <small class="text-muted">{{ p.booking.user.phone }}</small>
+                        </td>
+                        <td class="text-center">
+                            <input class="form-check-input fs-5" type="checkbox" title="Mark Boarded">
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">{{ _('no_manifest_passengers') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

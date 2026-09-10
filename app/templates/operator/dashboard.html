@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('operator_dashboard') }} - {{ _('Bus Reservation System') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-truck-front text-info me-2"></i>{{ _('operator_dashboard') }}</h3>
+            <p class="text-muted small mb-0">{{ _('operator_sub') }}</p>
+        </div>
+        <span class="badge bg-info-subtle text-info fs-6 px-3 py-2">
+            <i class="bi bi-shield-check me-1"></i> {{ _('operator') }}
+        </span>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="custom-card p-3 border-start border-4 border-info">
+                <span class="text-muted small text-uppercase fw-semibold">{{ _('assigned_fleet') }}</span>
+                <h3 class="fw-bold text-dark mb-0 mt-1">{{ buses|length }}</h3>
+                <small class="text-muted">{{ _('manage_buses') }}</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="custom-card p-3 border-start border-4 border-primary">
+                <span class="text-muted small text-uppercase fw-semibold">{{ _('upcoming_trips') }}</span>
+                <h3 class="fw-bold text-primary mb-0 mt-1">{{ schedules|length }}</h3>
+                <small class="text-muted">{{ _('scheduled_departures') }}</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="custom-card p-3 border-start border-4 border-success">
+                <span class="text-muted small text-uppercase fw-semibold">{{ _('passengers_today') }}</span>
+                <h3 class="fw-bold text-success mb-0 mt-1">{{ total_passengers_today }}</h3>
+                <small class="text-muted">{{ _('booked_today') }}</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assigned Schedules Table -->
+    <div class="custom-card p-4 shadow-sm mb-4">
+        <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-calendar-check me-2"></i>{{ _('upcoming_journey_schedules') }}</h5>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ _('schedule') }} #</th>
+                        <th>{{ _('date_of_journey') }}</th>
+                        <th>{{ _('route') }}</th>
+                        <th>{{ _('bus') }}</th>
+                        <th>{{ _('departure_time') }}</th>
+                        <th>{{ _('occupancy') }}</th>
+                        <th>{{ _('actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in schedules %}
+                    <tr>
+                        <td class="font-monospace text-muted">#{{ s.id }}</td>
+                        <td class="fw-bold text-dark">{{ s.journey_date|format_date }}</td>
+                        <td>{{ s.route.source_city }} &rarr; {{ s.route.destination_city }}</td>
+                        <td>
+                            <div>{{ s.bus.bus_name }}</div>
+                            <small class="text-muted font-monospace">{{ s.bus.bus_number }}</small>
+                        </td>
+                        <td><strong class="text-primary">{{ s.departure_time|format_time }}</strong></td>
+                        <td>
+                            {% set booked_cnt = s.bus.total_seats - s.available_seats_count %}
+                            <div class="progress" style="height: 14px; width: 120px;">
+                                <div class="progress-bar bg-primary" style="width: {{ ((booked_cnt / s.bus.total_seats) * 100)|int }}%;"></div>
+                            </div>
+                            <small class="text-muted">{{ booked_cnt }} / {{ s.bus.total_seats }} {{ _('seat_booked') }}</small>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('operator.schedule_manifest', schedule_id=s.id) }}" class="btn btn-outline-primary btn-sm fw-semibold">
+                                <i class="bi bi-clipboard2-check me-1"></i> {{ _('passenger_manifest') }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">{{ _('no_schedules_found') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

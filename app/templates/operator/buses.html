@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('assigned_fleet') }} - {{ _('operator') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-bus-front text-info me-2"></i>{{ _('assigned_fleet') }}</h3>
+            <p class="text-muted small mb-0">{{ _('operator_sub') }}</p>
+        </div>
+        <a href="{{ url_for('operator.dashboard') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> {{ _('back_to_dashboard') }}
+        </a>
+    </div>
+
+    <div class="row g-4">
+        {% for b in buses %}
+        <div class="col-md-6 col-lg-4">
+            <div class="custom-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-primary-subtle text-primary">{{ b.bus_type }}</span>
+                        <span class="badge bg-success-subtle text-success">{{ _('active') }}</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">{{ b.bus_name }}</h5>
+                    <div class="font-monospace text-muted mb-3">{{ b.bus_number }}</div>
+
+                    <ul class="list-unstyled small text-muted mb-4">
+                        <li class="mb-1"><i class="bi bi-person-wheelchair me-1"></i> {{ _('total_seats') }}: <strong>{{ b.total_seats }}</strong></li>
+                        <li class="mb-1"><i class="bi bi-calendar3 me-1"></i> {{ _('schedules_management') }}: <strong>{{ b.schedules|length }}</strong></li>
+                        <li class="mb-1"><i class="bi bi-stars me-1"></i> {{ _('amenities') }}: {{ b.amenities }}</li>
+                    </ul>
+                </div>
+
+                <div class="border-top pt-3">
+                    <a href="{{ url_for('operator.dashboard') }}" class="btn btn-outline-info w-100 btn-sm fw-semibold text-dark">
+                        <i class="bi bi-eye me-1"></i> {{ _('view_schedules') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5 text-muted">
+            <i class="bi bi-bus-front display-4 mb-2 d-block"></i>
+            {{ _('no_buses_found') }}
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

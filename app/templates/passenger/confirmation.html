@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('booking_confirmed_title') }} - {{ booking.booking_id }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="custom-card p-4 p-md-5 text-center shadow">
+                <!-- Success Icon -->
+                <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <i class="bi bi-check-lg display-4 fw-bold"></i>
+                </div>
+                <h2 class="fw-bold text-dark mb-1">{{ _('booking_confirmed_title') }}</h2>
+                <p class="text-muted mb-4">{{ _('booking_confirmed_sub') }}</p>
+
+                <!-- Booking ID Callout -->
+                <div class="p-3 bg-light rounded-3 border d-inline-block px-5 mb-4">
+                    <small class="text-muted text-uppercase fw-semibold d-block">{{ _('booking_id') }}</small>
+                    <span class="fs-3 fw-bold text-primary font-monospace">{{ booking.booking_id }}</span>
+                </div>
+
+                <!-- Summary Details Table -->
+                <div class="custom-card p-4 text-start mb-4 bg-white">
+                    <div class="row g-3">
+                        <div class="col-md-6 border-end">
+                            <h6 class="fw-bold text-muted text-uppercase small">{{ _('journey_details') }}</h6>
+                            <div class="mb-2">
+                                <span class="badge bg-primary-subtle text-primary">{{ booking.schedule.bus.bus_type }}</span>
+                                <span class="fw-bold text-dark d-block">{{ booking.schedule.bus.bus_name }} ({{ booking.schedule.bus.bus_number }})</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>{{ booking.schedule.route.source_city }}</strong> 
+                                <i class="bi bi-arrow-right mx-1 text-muted"></i> 
+                                <strong>{{ booking.schedule.route.destination_city }}</strong>
+                            </div>
+                            <div class="small text-muted">
+                                <div><i class="bi bi-calendar3 me-1"></i> {{ _('date_of_journey') }}: {{ booking.schedule.journey_date|format_date }}</div>
+                                <div><i class="bi bi-clock me-1"></i> {{ _('departure') }}: {{ booking.schedule.departure_time|format_time }}</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 ps-md-4">
+                            <h6 class="fw-bold text-muted text-uppercase small">{{ _('passenger_payment_info') }}</h6>
+                            <div class="mb-2">
+                                <span class="text-muted small d-block">{{ _('allocated_seats') }}:</span>
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    {% for p in booking.passengers %}
+                                        <span class="badge bg-success fs-6">{{ p.seat_number }} ({{ p.passenger_name }})</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="mb-1">
+                                <span class="text-muted small">{{ _('total_paid') }}:</span>
+                                <span class="fw-bold text-success fs-5 ms-1">{{ booking.total_amount|currency }}</span>
+                            </div>
+                            <div class="small">
+                                <span class="text-muted">{{ _('payment_status') }}:</span>
+                                <span class="badge bg-success-subtle text-success ms-1">{{ booking.latest_payment.payment_status if booking.latest_payment else 'CONFIRMED' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-center flex-wrap gap-3">
+                    <a href="{{ url_for('ticket.download_ticket', booking_id=booking.booking_id) }}" class="btn btn-primary btn-lg px-4 fw-bold shadow-sm">
+                        <i class="bi bi-file-earmark-pdf-fill me-2"></i> {{ _('download_eticket_pdf') }}
+                    </a>
+                    <a href="{{ url_for('passenger.my_bookings') }}" class="btn btn-outline-dark btn-lg px-4 fw-semibold">
+                        <i class="bi bi-ticket-detailed me-1"></i> {{ _('my_bookings') }}
+                    </a>
+                    <a href="{{ url_for('passenger.dashboard') }}" class="btn btn-outline-secondary btn-lg px-4 fw-semibold">
+                        <i class="bi bi-house me-1"></i> {{ _('Dashboard') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

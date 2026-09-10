@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}{% if bus %}{{ _('edit') }} {{ _('bus') }}{% else %}{{ _('add_new_bus') }}{% endif %} - {{ _('admin') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="custom-card p-4 p-md-5 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                    <h4 class="fw-bold mb-0">
+                        <i class="bi bi-bus-front text-primary me-2"></i>
+                        {% if bus %}{{ _('edit') }} {{ _('bus') }}: {{ bus.bus_number }}{% else %}{{ _('add_new_bus') }}{% endif %}
+                    </h4>
+                    <a href="{{ url_for('admin.buses') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i> {{ _('manage_buses') }}
+                    </a>
+                </div>
+
+                <form method="POST">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">{{ _('bus_number') }} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="bus_number" 
+                                   value="{{ bus.bus_number if bus else '' }}" 
+                                   placeholder="e.g. MH-12-AB-1234" 
+                                   {% if bus %}disabled{% else %}required{% endif %}>
+                            {% if bus %}
+                            <div class="form-text">Bus registration number cannot be altered.</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">{{ _('bus_name') }} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="bus_name" 
+                                   value="{{ bus.bus_name if bus else '' }}" 
+                                   placeholder="e.g. Volvo Multi-Axle 9600" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">{{ _('bus_type') }}</label>
+                            <select class="form-select" name="bus_type" required>
+                                <option value="AC Sleeper" {% if bus and bus.bus_type == 'AC Sleeper' %}selected{% endif %}>{{ _('ac_sleeper') }}</option>
+                                <option value="AC Seater" {% if (bus and bus.bus_type == 'AC Seater') or not bus %}selected{% endif %}>{{ _('ac_seater') }}</option>
+                                <option value="Non-AC Sleeper" {% if bus and bus.bus_type == 'Non-AC Sleeper' %}selected{% endif %}>{{ _('non_ac_sleeper') }}</option>
+                                <option value="Non-AC Seater" {% if bus and bus.bus_type == 'Non-AC Seater' %}selected{% endif %}>{{ _('non_ac_seater') }}</option>
+                                <option value="Luxury Multi-Axle" {% if bus and bus.bus_type == 'Luxury Multi-Axle' %}selected{% endif %}>Luxury Multi-Axle</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">{{ _('total_seats') }}</label>
+                            <input type="number" class="form-control" name="total_seats" 
+                                   value="{{ bus.total_seats if bus else 40 }}" 
+                                   min="10" max="60" {% if bus %}disabled{% else %}required{% endif %}>
+                            {% if not bus %}
+                            <div class="form-text">Seat layout records will be generated automatically.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ _('operator_name') }}</label>
+                        <select class="form-select" name="operator_id">
+                            <option value="">-- {{ _('select') }} --</option>
+                            {% for op in operators %}
+                            <option value="{{ op.id }}" {% if bus and bus.operator_id == op.id %}selected{% endif %}>
+                                {{ op.name }} ({{ op.email }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">{{ _('amenities') }}</label>
+                        <input type="text" class="form-control" name="amenities" 
+                                value="{{ bus.amenities if bus else 'Air Conditioning, Charging Point, Reading Light, Water Bottle, Blanket' }}" 
+                                placeholder="Comma-separated amenities">
+                    </div>
+
+                    {% if bus %}
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if bus.is_active %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold" for="is_active">
+                            {{ _('active') }}
+                        </label>
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary px-5 py-2 fw-semibold">
+                        <i class="bi bi-check2-circle me-1"></i> {% if bus %}{{ _('save') }}{% else %}{{ _('add_new_bus') }}{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

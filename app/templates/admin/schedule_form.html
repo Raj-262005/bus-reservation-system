@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}{% if schedule %}{{ _('Edit Schedule') }}{% else %}{{ _('Add Schedule') }}{% endif %} - {{ _('Admin') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="custom-card p-4 p-md-5 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                    <h4 class="fw-bold mb-0">
+                        <i class="bi bi-calendar-plus text-primary me-2"></i>
+                        {% if schedule %}{{ _('Edit Schedule') }} #{{ schedule.id }}{% else %}{{ _('Create Journey Schedule') }}{% endif %}
+                    </h4>
+                    <a href="{{ url_for('admin.schedules') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i> {{ _('Back to Schedules') }}
+                    </a>
+                </div>
+
+                <form method="POST">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">{{ _('Assign Bus') }} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="bus_id" required>
+                                <option value="" disabled {% if not schedule %}selected{% endif %}>{{ _('select_bus') }}</option>
+                                {% for b in buses %}
+                                <option value="{{ b.id }}" {% if schedule and schedule.bus_id == b.id %}selected{% endif %}>
+                                    {{ b.bus_name }} ({{ b.bus_number }}) - {{ b.bus_type }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">{{ _('Assign Route') }} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="route_id" required>
+                                <option value="" disabled {% if not schedule %}selected{% endif %}>{{ _('select_route') }}</option>
+                                {% for r in routes %}
+                                <option value="{{ r.id }}" {% if schedule and schedule.route_id == r.id %}selected{% endif %}>
+                                    {{ r.source_city }} &rarr; {{ r.destination_city }} ({{ r.distance_km }} km)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">{{ _('Journey Date') }} <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="journey_date" 
+                                   value="{{ schedule.journey_date.strftime('%Y-%m-%d') if schedule else (today_str or '') }}" 
+                                   min="{{ today_str or '' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">{{ _('Departure Time') }} <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" name="departure_time" 
+                                   value="{{ schedule.departure_time.strftime('%H:%M') if schedule else '08:00' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">{{ _('Arrival Time') }} <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" name="arrival_time" 
+                                   value="{{ schedule.arrival_time.strftime('%H:%M') if schedule else '12:30' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">{{ _('ticket_base_fare') }} <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" step="10" class="form-control" name="fare" 
+                                       value="{{ schedule.fare if schedule else '450' }}" required>
+                            </div>
+                        </div>
+                        {% if schedule %}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">{{ _('Schedule Status') }}</label>
+                            <select class="form-select" name="status">
+                                <option value="SCHEDULED" {% if schedule.status == 'SCHEDULED' %}selected{% endif %}>{{ _('SCHEDULED') }}</option>
+                                <option value="COMPLETED" {% if schedule.status == 'COMPLETED' %}selected{% endif %}>{{ _('COMPLETED') }}</option>
+                                <option value="CANCELLED" {% if schedule.status == 'CANCELLED' %}selected{% endif %}>{{ _('CANCELLED') }}</option>
+                            </select>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary px-5 py-2 fw-semibold">
+                        <i class="bi bi-check2-circle me-1"></i> {% if schedule %}{{ _('Update Schedule') }}{% else %}{{ _('Publish Schedule') }}{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

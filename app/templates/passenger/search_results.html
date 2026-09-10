@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('search_results_title') }} - {{ _('Bus Reservation System') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Search Modification Bar -->
+    <div class="custom-card p-3 mb-4 shadow-sm">
+        <form action="{{ url_for('passenger.search') }}" method="GET" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted mb-1">{{ _('from_source') }}</label>
+                <input list="sourcesList" class="form-control" name="source" value="{{ source }}" required>
+                <datalist id="sourcesList">
+                    {% for s in sources %}<option value="{{ s }}">{% endfor %}
+                </datalist>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted mb-1">{{ _('to_destination') }}</label>
+                <input list="destinationsList" class="form-control" name="destination" value="{{ destination }}" required>
+                <datalist id="destinationsList">
+                    {% for d in destinations %}<option value="{{ d }}">{% endfor %}
+                </datalist>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted mb-1">{{ _('date_of_journey') }}</label>
+                <input type="date" class="form-control" name="journey_date" value="{{ journey_date }}" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-muted mb-1">{{ _('bus_type') }}</label>
+                <select class="form-select" name="bus_type">
+                    <option value="ALL" {% if bus_type == 'ALL' or not bus_type %}selected{% endif %}>{{ _('all_bus_types') }}</option>
+                    <option value="AC Sleeper" {% if bus_type == 'AC Sleeper' %}selected{% endif %}>{{ _('ac_sleeper') }}</option>
+                    <option value="Non-AC Sleeper" {% if bus_type == 'Non-AC Sleeper' %}selected{% endif %}>{{ _('non_ac_sleeper') }}</option>
+                    <option value="AC Seater" {% if bus_type == 'AC Seater' %}selected{% endif %}>{{ _('ac_seater') }}</option>
+                    <option value="Non-AC Seater" {% if bus_type == 'Non-AC Seater' %}selected{% endif %}>{{ _('non_ac_seater') }}</option>
+                    <option value="AC" {% if bus_type == 'AC' %}selected{% endif %}>{{ _('ac_all') }}</option>
+                    <option value="Non-AC" {% if bus_type == 'Non-AC' %}selected{% endif %}>{{ _('non_ac_all') }}</option>
+                    <option value="Sleeper" {% if bus_type == 'Sleeper' %}selected{% endif %}>{{ _('sleeper_all') }}</option>
+                    <option value="Seater" {% if bus_type == 'Seater' %}selected{% endif %}>{{ _('seater_all') }}</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100" title="{{ _('search_buses') }}"><i class="bi bi-search"></i></button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Search Header Information -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="fw-bold mb-0">
+                {% if source and destination %}
+                    {{ source }} <i class="bi bi-arrow-right text-primary mx-1"></i> {{ destination }}
+                {% else %}
+                    {{ _('available_bus_schedules') }}
+                {% endif %}
+            </h4>
+            <p class="text-muted small mb-0">
+                {{ _('journey_date_label') }}: <strong>{{ journey_date }}</strong> &bull; {{ _('showing_buses', count=schedules|length) }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Bus Schedules Results List -->
+    {% if schedules %}
+        <div class="row g-3">
+            {% for s in schedules %}
+                {% set avail = s.available_seats_count %}
+                <div class="col-12">
+                    <div class="custom-card p-4">
+                        <div class="row align-items-center g-3">
+                            <!-- Bus Info -->
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <h5 class="fw-bold text-dark mb-0">{{ s.bus.bus_name }}</h5>
+                                    <span class="badge bg-secondary-subtle text-secondary font-monospace">{{ s.bus.bus_number }}</span>
+                                </div>
+                                <span class="badge bg-primary-subtle text-primary mb-2">{{ s.bus.bus_type }}</span>
+                                <p class="small text-muted mb-0">
+                                    <i class="bi bi-stars text-warning me-1"></i> {{ s.bus.amenities }}
+                                </p>
+                            </div>
+
+                            <!-- Timings & Route -->
+                            <div class="col-md-4 text-md-center">
+                                <div class="d-flex align-items-center justify-content-md-center gap-3">
+                                    <div>
+                                        <h5 class="fw-bold mb-0 text-primary">{{ s.departure_time|format_time }}</h5>
+                                        <small class="text-muted">{{ s.route.source_city }}</small>
+                                    </div>
+                                    <div class="text-muted px-2">
+                                        <small class="d-block text-secondary">{{ s.route.estimated_duration }}</small>
+                                        <i class="bi bi-arrow-right fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold mb-0 text-dark">{{ s.arrival_time|format_time }}</h5>
+                                        <small class="text-muted">{{ s.route.destination_city }}</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Price & Seat Availability & CTA -->
+                            <div class="col-md-4 text-md-end">
+                                <div class="mb-1">
+                                    <span class="fs-4 fw-bold text-success">{{ s.fare|currency }}</span>
+                                    <small class="text-muted">{{ _('per_seat') }}</small>
+                                </div>
+                                <div class="mb-3">
+                                    {% if avail > 5 %}
+                                        <span class="badge bg-success-subtle text-success fs-6"><i class="bi bi-check-circle me-1"></i> {{ avail }} {{ _('seats_available') }}</span>
+                                    {% elif avail > 0 %}
+                                        <span class="badge bg-warning-subtle text-warning fs-6"><i class="bi bi-exclamation-circle me-1"></i> {{ _('only_seats_left', count=avail) }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger fs-6"><i class="bi bi-x-circle me-1"></i> {{ _('sold_out') }}</span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    {% if avail > 0 %}
+                                        <a href="{{ url_for('passenger.seat_selection', schedule_id=s.id) }}" class="btn btn-warning px-4 fw-bold text-dark shadow-sm">
+                                            <i class="bi bi-grid-3x3-gap-fill me-1"></i> {{ _('view_seats') }}
+                                        </a>
+                                    {% else %}
+                                        <button class="btn btn-secondary px-4 fw-semibold" disabled>{{ _('sold_out') }}</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="custom-card p-5 text-center my-4">
+            <div class="rounded-circle bg-light d-inline-flex p-4 mb-3">
+                <i class="bi bi-bus-front text-muted display-4"></i>
+            </div>
+            <h4 class="fw-bold text-dark">{{ _('no_buses_found') }}</h4>
+            <p class="text-muted mx-auto mb-4" style="max-width: 480px;">
+                {{ _('no_buses_message') }}
+            </p>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="{{ url_for('passenger.home') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-1"></i> {{ _('back_to_search') }}
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

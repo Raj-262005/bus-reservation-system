@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('reports_title') }} - {{ _('Admin') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header & Print Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-graph-up-arrow text-primary me-2"></i>{{ _('reports_title') }}</h3>
+            <p class="text-muted small mb-0">{{ _('reports_management_sub') }}</p>
+        </div>
+        <button type="button" class="btn btn-outline-dark btn-sm" onclick="window.print()">
+            <i class="bi bi-printer me-1"></i> {{ _('print_report') }}
+        </button>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="custom-card p-3 mb-4 shadow-sm">
+        <form method="GET" action="{{ url_for('admin.reports') }}" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted mb-1">{{ _('from_date') }}</label>
+                <input type="date" class="form-control" name="start_date" value="{{ start_date or '' }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted mb-1">{{ _('to_date') }}</label>
+                <input type="date" class="form-control" name="end_date" value="{{ end_date or '' }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted mb-1">{{ _('filter_by_bus') }}</label>
+                <select class="form-select" name="bus_id">
+                    <option value="ALL">{{ _('all_buses') }}</option>
+                    {% for b in buses %}
+                    <option value="{{ b.id }}" {% if selected_bus == b.id|string %}selected{% endif %}>{{ b.bus_name }} ({{ b.bus_number }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-muted mb-1">{{ _('filter_by_route') }}</label>
+                <select class="form-select" name="route_id">
+                    <option value="ALL">{{ _('all_routes') }}</option>
+                    {% for r in routes %}
+                    <option value="{{ r.id }}" {% if selected_route == r.id|string %}selected{% endif %}>{{ r.route_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i></button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="custom-card p-3 border-start border-4 border-success">
+                <span class="text-muted small text-uppercase fw-semibold">{{ _('filtered_revenue') }}</span>
+                <h3 class="fw-bold text-success mb-0 mt-1">{{ total_rev|currency }}</h3>
+                <small class="text-muted">{{ _('total_earnings_selection') }}</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="custom-card p-3 border-start border-4 border-primary">
+                <span class="text-muted small text-uppercase fw-semibold">{{ _('tickets_booked') }}</span>
+                <h3 class="fw-bold text-primary mb-0 mt-1">{{ total_tickets }} {{ _('seats') }}</h3>
+                <small class="text-muted">{{ _('confirmed_passenger_seats') }}</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="custom-card p-3 border-start border-4 border-info">
+                <span class="text-muted small text-uppercase fw-semibold">{{ _('total_bookings') }}</span>
+                <h3 class="fw-bold text-info-emphasis mb-0 mt-1">{{ bookings|length }}</h3>
+                <small class="text-muted">{{ _('confirmed_booking_orders') }}</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="custom-card p-4 shadow-sm">
+        <h5 class="fw-bold mb-3 text-dark">{{ _('audit_breakdown') }}</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ _('booking_id') }}</th>
+                        <th>{{ _('booking_date') }}</th>
+                        <th>{{ _('Journey Date') }}</th>
+                        <th>{{ _('Route') }}</th>
+                        <th>{{ _('Bus') }}</th>
+                        <th>{{ _('seats_booked') }}</th>
+                        <th>{{ _('amount_paid') }}</th>
+                        <th>{{ _('payment_method') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in bookings %}
+                    <tr>
+                        <td class="font-monospace fw-bold text-primary">{{ b.booking_id }}</td>
+                        <td>{{ b.created_at|format_date }}</td>
+                        <td>{{ b.schedule.journey_date|format_date }}</td>
+                        <td>{{ b.schedule.route.route_name }}</td>
+                        <td>{{ b.schedule.bus.bus_name }}</td>
+                        <td><span class="badge bg-secondary-subtle text-secondary">{{ b.seat_numbers_list }}</span></td>
+                        <td class="fw-bold text-success">{{ b.total_amount|currency }}</td>
+                        <td>{{ b.latest_payment.payment_method if b.latest_payment else 'UPI' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">{{ _('no_transactions_found') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('page_not_found') }} - Bus Reservation System{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="py-5">
+        <div class="display-1 fw-bold text-primary mb-3">404</div>
+        <h3 class="fw-bold mb-2">{{ message or _('oops_page_not_found') }}</h3>
+        <p class="text-muted mx-auto mb-4" style="max-width: 450px;">
+            {{ _('page_moved_or_deleted') }}
+        </p>
+        <a href="{{ url_for('passenger.home') }}" class="btn btn-primary px-4 fw-semibold">
+            <i class="bi bi-house-door me-1"></i> {{ _('return_to_home') }}
+        </a>
+    </div>
+</div>
+{% endblock %}
+

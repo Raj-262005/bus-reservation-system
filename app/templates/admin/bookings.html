@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Master Bookings') }} - {{ _('Admin') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-ticket-detailed-fill text-primary me-2"></i>{{ _('Master Bookings') }}</h3>
+            <p class="text-muted small mb-0">{{ _('master_bookings_sub') }}</p>
+        </div>
+        <!-- Search & Filter Form -->
+        <form class="d-flex gap-2" method="GET" action="{{ url_for('admin.bookings') }}">
+            <input type="text" class="form-control form-control-sm" name="q" placeholder="{{ _('search_bookings_placeholder') }}" value="{{ query or '' }}">
+            <select class="form-select form-select-sm" name="status">
+                <option value="ALL" {% if current_status == 'ALL' %}selected{% endif %}>{{ _('all_statuses') }}</option>
+                <option value="CONFIRMED" {% if current_status == 'CONFIRMED' %}selected{% endif %}>{{ _('CONFIRMED') }}</option>
+                <option value="CANCELLED" {% if current_status == 'CANCELLED' %}selected{% endif %}>{{ _('CANCELLED') }}</option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+
+    <div class="custom-card p-4 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ _('booking_id') }}</th>
+                        <th>{{ _('passenger_contact') }}</th>
+                        <th>{{ _('Journey Date') }}</th>
+                        <th>{{ _('route_and_bus') }}</th>
+                        <th>{{ _('seats') }}</th>
+                        <th>{{ _('total_amount') }}</th>
+                        <th>{{ _('payment_status') }}</th>
+                        <th>{{ _('booking_status') }}</th>
+                        <th>{{ _('Actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in bookings %}
+                    <tr>
+                        <td class="font-monospace fw-bold text-primary">{{ b.booking_id }}</td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ b.primary_passenger }}</div>
+                            <small class="text-muted">{{ b.user.email }}</small>
+                        </td>
+                        <td>
+                            <div>{{ b.schedule.journey_date|format_date }}</div>
+                            <small class="text-muted">{{ b.schedule.departure_time|format_time }}</small>
+                        </td>
+                        <td>
+                            <div>{{ b.schedule.route.source_city }} &rarr; {{ b.schedule.route.destination_city }}</div>
+                            <small class="text-muted">{{ b.schedule.bus.bus_name }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary-subtle text-secondary">{{ b.seat_numbers_list }}</span>
+                        </td>
+                        <td class="fw-bold">{{ b.total_amount|currency }}</td>
+                        <td>
+                            <span class="badge bg-info-subtle text-info">{{ b.latest_payment.payment_status if b.latest_payment else 'PAID' }}</span>
+                        </td>
+                        <td>
+                            {% if b.booking_status == 'CONFIRMED' %}
+                                <span class="badge badge-confirmed px-2 py-1">{{ _('CONFIRMED') }}</span>
+                            {% else %}
+                                <span class="badge badge-cancelled px-2 py-1">{{ _('CANCELLED') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('ticket.download_ticket', booking_id=b.booking_id) }}" class="btn btn-outline-primary" title="{{ _('download_eticket') }}">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>
+                                {% if b.booking_status == 'CONFIRMED' %}
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#adminCancelModal{{ b.id }}" title="{{ _('cancel_ticket') }}">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+
+                            <!-- Admin Cancel Modal -->
+                            {% if b.booking_status == 'CONFIRMED' %}
+                            <div class="modal fade" id="adminCancelModal{{ b.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form method="POST" action="{{ url_for('admin.cancel_booking_admin', booking_id=b.booking_id) }}">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle me-1"></i> {{ _('admin_cancel_booking') }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>{{ _('cancel_ticket') }}: <strong>{{ b.booking_id }}</strong> ({{ b.primary_passenger }})?</p>
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-semibold">{{ _('cancellation_reason_label') }}</label>
+                                                    <input type="text" class="form-control" name="reason" value="Cancelled by Administrator" required>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('keep_booking') }}</button>
+                                                <button type="submit" class="btn btn-danger">{{ _('confirm_cancellation') }}</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-muted">{{ _('no_matching_bookings') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

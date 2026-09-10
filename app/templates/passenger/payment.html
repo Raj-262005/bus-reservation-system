@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('checkout_payment') }} - {{ _('Bus Reservation System') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('passenger.home') }}">{{ _('Home') }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('passenger.seat_selection', schedule_id=schedule.id) }}">{{ _('choose_seats') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ _('checkout_payment') }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Booking Review Column -->
+        <div class="col-lg-5">
+            <div class="custom-card p-4 shadow-sm mb-4">
+                <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-receipt-cutoff me-2"></i>{{ _('trip_summary') }}</h5>
+
+                <div class="mb-3 pb-3 border-bottom">
+                    <span class="badge bg-primary-subtle text-primary mb-1">{{ schedule.bus.bus_type }}</span>
+                    <h5 class="fw-bold mb-1">{{ schedule.bus.bus_name }}</h5>
+                    <small class="text-secondary font-monospace">{{ schedule.bus.bus_number }}</small>
+                </div>
+
+                <div class="mb-3 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <small class="text-muted d-block">{{ _('from_source') }}</small>
+                            <strong>{{ schedule.route.source_city }}</strong>
+                            <div class="small text-primary">{{ schedule.departure_time|format_time }}</div>
+                        </div>
+                        <div class="text-center pt-2">
+                            <i class="bi bi-arrow-right text-muted fs-5"></i>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block">{{ _('to_destination') }}</small>
+                            <strong>{{ schedule.route.destination_city }}</strong>
+                            <div class="small text-dark">{{ schedule.arrival_time|format_time }}</div>
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        <i class="bi bi-calendar3 me-1"></i> {{ _('date_of_journey') }}: {{ schedule.journey_date|format_date }}
+                    </div>
+                </div>
+
+                <!-- Passengers List -->
+                <div class="mb-3 pb-3 border-bottom">
+                    <h6 class="fw-bold small text-muted text-uppercase mb-2">{{ _('passengers_allocated_seats') }}</h6>
+                    {% for p in passengers %}
+                    <div class="d-flex justify-content-between align-items-center mb-1 small">
+                        <span>{{ p.passenger_name }} ({{ p.age }}, {{ p.gender }})</span>
+                        <span class="badge bg-primary">{{ _('seat') }} {{ p.seat_number }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Fare Breakdown -->
+                <div>
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>{{ _('fare_per_seat') }}</span>
+                        <span>{{ schedule.fare|currency }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>{{ _('passengers_count') }}</span>
+                        <span>{{ passengers|length }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mb-2">
+                        <span>{{ _('taxes_fees') }}</span>
+                        <span class="text-success">{{ _('free_included') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between fw-bold fs-5 text-dark border-top pt-2">
+                        <span>{{ _('total_payable') }}</span>
+                        <span class="text-success">{{ total_amount|currency }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Gateway Options Column -->
+        <div class="col-lg-7">
+            <div class="custom-card p-4 p-md-5 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold text-dark mb-0"><i class="bi bi-lock-fill text-success me-2"></i>{{ _('select_payment_method') }}</h4>
+                    <span class="badge bg-success-subtle text-success"><i class="bi bi-shield-check me-1"></i> {{ _('ssl_encrypted') }}</span>
+                </div>
+
+                {% if demo_mode %}
+                <div class="alert alert-warning py-2 mb-4 small">
+                    <i class="bi bi-info-circle-fill me-1"></i> 
+                    <strong>{{ _('demo_mode_active') }}</strong> {{ _('demo_payment_desc') }}
+                </div>
+
+                <!-- Payment Methods Tabs -->
+                <ul class="nav nav-pills mb-4 nav-justified" id="paymentTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-semibold" id="qr-tab" data-bs-toggle="pill" data-bs-target="#qr-pane" type="button" role="tab">
+                            <i class="bi bi-qr-code-scan me-1"></i> {{ _('scan_and_pay') }}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-semibold" id="upi-tab" data-bs-toggle="pill" data-bs-target="#upi-pane" type="button" role="tab">
+                            <i class="bi bi-phone me-1"></i> {{ _('upi_id') }}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-semibold" id="card-tab" data-bs-toggle="pill" data-bs-target="#card-pane" type="button" role="tab">
+                            <i class="bi bi-credit-card me-1"></i> {{ _('debit_credit_card') }}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-semibold" id="netbanking-tab" data-bs-toggle="pill" data-bs-target="#netbanking-pane" type="button" role="tab">
+                            <i class="bi bi-bank me-1"></i> {{ _('net_banking') }}
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="paymentTabsContent">
+                    <!-- Scan & Pay QR Code Tab -->
+                    <div class="tab-pane fade show active" id="qr-pane" role="tabpanel">
+                        <div class="text-center">
+                            <!-- UPI Supported Apps Badges -->
+                            <div class="d-flex justify-content-center align-items-center gap-2 mb-3 flex-wrap">
+                                <span class="badge bg-light text-dark border px-2 py-1"><i class="bi bi-google text-primary me-1"></i> Google Pay</span>
+                                <span class="badge bg-light text-dark border px-2 py-1"><i class="bi bi-phone text-purple me-1" style="color: #5f259f;"></i> PhonePe</span>
+                                <span class="badge bg-light text-dark border px-2 py-1"><i class="bi bi-wallet2 text-info me-1"></i> Paytm</span>
+                                <span class="badge bg-light text-dark border px-2 py-1"><i class="bi bi-bank text-warning me-1"></i> BHIM UPI</span>
+                            </div>
+
+                            <!-- QR Code Box -->
+                            <div class="p-3 mx-auto mb-3" style="max-width: 320px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);">
+                                <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                                    <span class="badge bg-success-subtle text-success fw-semibold"><i class="bi bi-shield-check me-1"></i> {{ _('verified_merchant') }}</span>
+                                    <span class="small text-muted font-monospace"><i class="bi bi-clock me-1"></i> <span id="qrCountdown">05:00</span></span>
+                                </div>
+
+                                <!-- QR Canvas Container -->
+                                <div class="position-relative d-inline-block p-2 bg-white rounded-3 my-2" style="border: 2px dashed #0d6efd;">
+                                    <div id="qrcodeBox" style="display: flex; justify-content: center; align-items: center; min-width: 200px; min-height: 200px;"></div>
+                                </div>
+
+                                <div class="mt-2">
+                                    <div class="text-muted small">{{ _('scan_with_upi') }}</div>
+                                    <div class="fs-4 fw-bold text-success">{{ total_amount|currency }}</div>
+                                    <div class="badge bg-light text-secondary border font-monospace mt-1">busreserve@okhdfcbank</div>
+                                </div>
+                            </div>
+
+                            <p class="text-muted small mb-3">
+                                <i class="bi bi-info-circle me-1"></i> {{ _('qr_instruction') }}
+                            </p>
+
+                            <!-- QR Confirmation Form -->
+                            <form method="POST" action="{{ url_for('passenger.process_demo_payment') }}" id="qrPaymentForm">
+                                <input type="hidden" name="payment_method" value="UPI_QR">
+                                <input type="hidden" name="upi_id" value="busreserve@okhdfcbank">
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-success py-3 fw-bold fs-6 shadow-sm">
+                                        <i class="bi bi-check-circle-fill me-2"></i> {{ _('confirm_payment_btn') }} ({{ total_amount|currency }})
+                                    </button>
+                                    <button type="submit" name="simulate_failure" value="1" class="btn btn-outline-danger btn-sm py-1">
+                                        <i class="bi bi-bug me-1"></i> {{ _('simulate_failure') }}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- UPI ID Tab -->
+                    <div class="tab-pane fade" id="upi-pane" role="tabpanel">
+                        <form method="POST" action="{{ url_for('passenger.process_demo_payment') }}">
+                            <input type="hidden" name="payment_method" value="UPI">
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">{{ _('virtual_payment_address') }}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-at"></i></span>
+                                    <input type="text" class="form-control" name="upi_id" placeholder="yourname@okaxis or mobile@upi" value="passenger@okaxis" required>
+                                </div>
+                                <div class="form-text">Supported: Google Pay, PhonePe, Paytm, BHIM UPI</div>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-success py-3 fw-bold fs-6">
+                                    <i class="bi bi-check2-circle me-1"></i> {{ _('pay_now') }} ({{ total_amount|currency }})
+                                </button>
+                                <button type="submit" name="simulate_failure" value="1" class="btn btn-outline-danger btn-sm py-1">
+                                    <i class="bi bi-bug me-1"></i> {{ _('simulate_failure') }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Card Tab -->
+                    <div class="tab-pane fade" id="card-pane" role="tabpanel">
+                        <form method="POST" action="{{ url_for('passenger.process_demo_payment') }}">
+                            <input type="hidden" name="payment_method" value="CARD">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">{{ _('card_number') }}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+                                    <input type="text" class="form-control font-monospace" placeholder="4111 2222 3333 4444" value="4111 2222 3333 4444" required>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">{{ _('expiry_date') }}</label>
+                                    <input type="text" class="form-control" placeholder="MM/YY" value="12/28" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">{{ _('cvv') }}</label>
+                                    <input type="password" class="form-control" placeholder="123" maxlength="4" value="123" required>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-success py-3 fw-bold fs-6">
+                                    <i class="bi bi-shield-check me-1"></i> {{ _('pay_now') }} ({{ total_amount|currency }})
+                                </button>
+                                <button type="submit" name="simulate_failure" value="1" class="btn btn-outline-danger btn-sm py-1">
+                                    <i class="bi bi-bug me-1"></i> {{ _('simulate_failure') }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Net Banking Tab -->
+                    <div class="tab-pane fade" id="netbanking-pane" role="tabpanel">
+                        <form method="POST" action="{{ url_for('passenger.process_demo_payment') }}">
+                            <input type="hidden" name="payment_method" value="NETBANKING">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">{{ _('select_bank') }}</label>
+                                <select class="form-select form-select-lg" name="bank_name" required>
+                                    <option value="HDFC">HDFC Bank</option>
+                                    <option value="SBI">State Bank of India</option>
+                                    <option value="ICICI">ICICI Bank</option>
+                                    <option value="AXIS">Axis Bank</option>
+                                    <option value="KOTAK">Kotak Mahindra Bank</option>
+                                </select>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-success py-3 fw-bold fs-6">
+                                    <i class="bi bi-bank me-1"></i> {{ _('proceed_to_bank') }} ({{ total_amount|currency }})
+                                </button>
+                                <button type="submit" name="simulate_failure" value="1" class="btn btn-outline-danger btn-sm py-1">
+                                    <i class="bi bi-bug me-1"></i> {{ _('simulate_failure') }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {% elif razorpay_configured %}
+                <!-- Razorpay Gateway Integration -->
+                <div class="text-center py-4">
+                    <p class="text-muted">{{ _('pay_securely_razorpay') }}</p>
+                    <button id="rzp-button" class="btn btn-primary btn-lg px-5 fw-bold shadow">
+                        <i class="bi bi-credit-card me-2"></i> {{ _('pay_now') }} ({{ total_amount|currency }})
+                    </button>
+                </div>
+                <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+                <script>
+                    var options = {
+                        "key": "{{ razorpay_key_id }}",
+                        "amount": "{{ (total_amount * 100)|int }}",
+                        "currency": "INR",
+                        "name": "Bus Reservation System",
+                        "description": "Booking Ticket Payment",
+                        "order_id": "{{ razorpay_order.id if razorpay_order else '' }}",
+                        "handler": function (response){
+                            fetch("{{ url_for('passenger.verify_razorpay_payment') }}", {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_signature: response.razorpay_signature
+                                })
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.status === 'success') {
+                                    window.location.href = data.redirect_url;
+                                } else {
+                                    alert(data.message || 'Payment verification failed.');
+                                }
+                            });
+                        }
+                    };
+                    var rzp = new Razorpay(options);
+                    document.getElementById('rzp-button').onclick = function(e){
+                        rzp.open();
+                        e.preventDefault();
+                    }
+                </script>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/qrcode.min.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var qrContainer = document.getElementById('qrcodeBox');
+        if (qrContainer) {
+            var upiString = "upi://pay?pa=busreserve@okhdfcbank&pn=BusReserve%20Transit&am={{ total_amount }}&cu=INR&tn=BRS-Booking";
+            try {
+                if (typeof QRCode !== 'undefined') {
+                    new QRCode(qrContainer, {
+                        text: upiString,
+                        width: 200,
+                        height: 200,
+                        colorDark: "#111827",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } else {
+                    throw new Error("QRCode library not loaded");
+                }
+            } catch (err) {
+                qrContainer.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(upiString) + '" alt="UPI QR Code" class="img-fluid rounded" style="width:200px; height:200px;" onerror="this.onerror=null; this.src=\'https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=' + encodeURIComponent(upiString) + '\';" />';
+            }
+        }
+
+        // Live 5-minute countdown timer
+        var timeLeft = 300;
+        var timerEl = document.getElementById('qrCountdown');
+        if (timerEl) {
+            var interval = setInterval(function() {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    timerEl.textContent = 'Expired';
+                    timerEl.classList.add('text-danger');
+                } else {
+                    var minutes = Math.floor(timeLeft / 60);
+                    var seconds = timeLeft % 60;
+                    timerEl.textContent = (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+                }
+            }, 1000);
+        }
+    });
+</script>
+{% endblock %}

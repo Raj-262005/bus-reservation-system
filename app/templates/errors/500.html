@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('server_error') }} - Bus Reservation System{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="py-5">
+        <div class="display-1 fw-bold text-danger mb-3">500</div>
+        <h3 class="fw-bold mb-2">{{ _('something_went_wrong') }}</h3>
+        <p class="text-muted mx-auto mb-4" style="max-width: 480px;">
+            {{ _('server_error_detailed') }}
+        </p>
+        <a href="{{ url_for('passenger.home') }}" class="btn btn-primary px-4 fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> {{ _('return_to_safety') }}
+        </a>
+    </div>
+</div>
+{% endblock %}
+

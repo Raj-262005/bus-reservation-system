@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('User Management') }} - {{ _('Admin') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-people-fill text-primary me-2"></i>{{ _('User Management') }}</h3>
+            <p class="text-muted small mb-0">{{ _('user_management_sub') }}</p>
+        </div>
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('admin.users', role='ALL') }}" class="btn btn-outline-primary {% if role_filter == 'ALL' or not role_filter %}active{% endif %}">{{ _('All Users') }}</a>
+            <a href="{{ url_for('admin.users', role='passenger') }}" class="btn btn-outline-success {% if role_filter == 'passenger' %}active{% endif %}">{{ _('passengers_filter') }}</a>
+            <a href="{{ url_for('admin.users', role='operator') }}" class="btn btn-outline-info text-dark {% if role_filter == 'operator' %}active{% endif %}">{{ _('operators_filter') }}</a>
+            <a href="{{ url_for('admin.users', role='admin') }}" class="btn btn-outline-danger {% if role_filter == 'admin' %}active{% endif %}">{{ _('admins_filter') }}</a>
+        </div>
+    </div>
+
+    <div class="custom-card p-4 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#ID</th>
+                        <th>{{ _('Name') }}</th>
+                        <th>{{ _('Email') }}</th>
+                        <th>{{ _('Phone') }}</th>
+                        <th>{{ _('Role') }}</th>
+                        <th>{{ _('Bookings Count') }}</th>
+                        <th>{{ _('Registered Date') }}</th>
+                        <th>{{ _('Status') }}</th>
+                        <th>{{ _('Action') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td class="text-muted">#{{ u.id }}</td>
+                        <td class="fw-semibold text-dark">{{ u.name }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>{{ u.phone }}</td>
+                        <td>
+                            {% if u.role == 'admin' %}
+                                <span class="badge bg-danger-subtle text-danger">{{ _('ADMIN') }}</span>
+                            {% elif u.role == 'operator' %}
+                                <span class="badge bg-info-subtle text-info">{{ _('OPERATOR') }}</span>
+                            {% else %}
+                                <span class="badge bg-success-subtle text-success">{{ _('PASSENGER') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary-subtle text-secondary">{{ u.bookings|length }} {{ _('my_bookings') }}</span>
+                        </td>
+                        <td class="small text-muted">{{ u.created_at|format_date }}</td>
+                        <td>
+                            {% if u.is_active %}
+                                <span class="badge bg-success-subtle text-success">{{ _('Active') }}</span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger">{{ _('Deactivated') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.id != session.get('user_id') %}
+                            <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=u.id) }}" style="display:inline;">
+                                <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}" 
+                                        title="{{ _('deactivate') if u.is_active else _('activate') }}">
+                                    {% if u.is_active %}
+                                        <i class="bi bi-person-x me-1"></i> {{ _('Deactivate') }}
+                                    {% else %}
+                                        <i class="bi bi-person-check me-1"></i> {{ _('Activate') }}
+                                    {% endif %}
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="badge bg-light text-muted border">{{ _('Current User') }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

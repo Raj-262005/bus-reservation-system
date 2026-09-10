@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('passenger_dashboard') }} - {{ _('Bus Reservation System') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Welcome & Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h3 class="fw-bold mb-1">{{ _('welcome') }}, {{ user.name }}!</h3>
+            <p class="text-muted small mb-0"><i class="bi bi-envelope me-1"></i> {{ user.email }} &bull; <i class="bi bi-phone me-1"></i> {{ user.phone }}</p>
+        </div>
+        <div>
+            <a href="{{ url_for('passenger.home') }}" class="btn btn-warning fw-bold text-dark shadow-sm">
+                <i class="bi bi-plus-circle me-1"></i> {{ _('book_new_ticket') }}
+            </a>
+            <a href="{{ url_for('passenger.profile') }}" class="btn btn-outline-secondary ms-2">
+                <i class="bi bi-person-gear me-1"></i> {{ _('edit_profile') }}
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="custom-card p-3 border-start border-4 border-primary">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-semibold">{{ _('total_bookings') }}</span>
+                        <h3 class="fw-bold mb-0 text-dark">{{ total_bookings }}</h3>
+                    </div>
+                    <div class="rounded-circle bg-primary-subtle text-primary p-3">
+                        <i class="bi bi-ticket-perforated fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="custom-card p-3 border-start border-4 border-success">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-semibold">{{ _('confirmed_trips') }}</span>
+                        <h3 class="fw-bold mb-0 text-success">{{ confirmed_bookings }}</h3>
+                    </div>
+                    <div class="rounded-circle bg-success-subtle text-success p-3">
+                        <i class="bi bi-check-circle fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="custom-card p-3 border-start border-4 border-danger">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-semibold">{{ _('cancelled') }}</span>
+                        <h3 class="fw-bold mb-0 text-danger">{{ cancelled_bookings }}</h3>
+                    </div>
+                    <div class="rounded-circle bg-danger-subtle text-danger p-3">
+                        <i class="bi bi-x-circle fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Journey Banner (if any) -->
+    {% if upcoming_journey %}
+    <div class="custom-card p-4 mb-4 border-primary bg-primary-subtle shadow-sm">
+        <div class="row align-items-center g-3">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-primary text-white">{{ _('upcoming_journey') }}</span>
+                    <span class="text-muted small">{{ _('booking_id') }}: <strong class="font-monospace text-dark">{{ upcoming_journey.booking_id }}</strong></span>
+                </div>
+                <h4 class="fw-bold text-dark mb-1">
+                    {{ upcoming_journey.schedule.route.source_city }} <i class="bi bi-arrow-right text-primary mx-1"></i> {{ upcoming_journey.schedule.route.destination_city }}
+                </h4>
+                <p class="mb-0 text-secondary small">
+                    <i class="bi bi-calendar-event me-1"></i> {{ upcoming_journey.schedule.journey_date|format_date }} &bull; 
+                    <i class="bi bi-clock me-1"></i> {{ _('departure') }}: {{ upcoming_journey.schedule.departure_time|format_time }} &bull; 
+                    <i class="bi bi-bus-front me-1"></i> {{ upcoming_journey.schedule.bus.bus_name }} ({{ upcoming_journey.schedule.bus.bus_number }}) &bull; 
+                    <i class="bi bi-person me-1"></i> {{ _('allocated_seats') }}: <strong>{{ upcoming_journey.seat_numbers_list }}</strong>
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{{ url_for('ticket.download_ticket', booking_id=upcoming_journey.booking_id) }}" class="btn btn-primary fw-semibold shadow-sm mb-1">
+                    <i class="bi bi-file-earmark-pdf-fill me-1"></i> {{ _('download_ticket') }}
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Bookings Table -->
+    <div class="custom-card p-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2"></i>{{ _('recent_bookings') }}</h5>
+            <a href="{{ url_for('passenger.my_bookings') }}" class="btn btn-outline-primary btn-sm">{{ _('view_all_bookings') }}</a>
+        </div>
+
+        {% if recent_bookings %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ _('booking_id') }}</th>
+                        <th>{{ _('date_of_journey') }}</th>
+                        <th>{{ _('route') }}</th>
+                        <th>{{ _('bus') }}</th>
+                        <th>{{ _('allocated_seats') }}</th>
+                        <th>{{ _('total_amount') }}</th>
+                        <th>{{ _('status') }}</th>
+                        <th>{{ _('actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in recent_bookings %}
+                    <tr>
+                        <td class="font-monospace fw-semibold">{{ b.booking_id }}</td>
+                        <td>{{ b.schedule.journey_date|format_date }}</td>
+                        <td>{{ b.schedule.route.source_city }} &rarr; {{ b.schedule.route.destination_city }}</td>
+                        <td>{{ b.schedule.bus.bus_name }}</td>
+                        <td><span class="badge bg-secondary-subtle text-secondary">{{ b.seat_numbers_list }}</span></td>
+                        <td class="fw-bold">{{ b.total_amount|currency }}</td>
+                        <td>
+                            {% if b.booking_status == 'CONFIRMED' %}
+                                <span class="badge badge-confirmed px-2 py-1">{{ _('confirmed') }}</span>
+                            {% else %}
+                                <span class="badge badge-cancelled px-2 py-1">{{ _('cancelled') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('ticket.download_ticket', booking_id=b.booking_id) }}" class="btn btn-outline-primary" title="{{ _('download_ticket') }}">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                {% if b.is_cancellable %}
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal{{ b.id }}" title="{{ _('cancel_booking') }}">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+
+                            <!-- Cancellation Modal -->
+                            {% if b.is_cancellable %}
+                            <div class="modal fade" id="cancelModal{{ b.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form method="POST" action="{{ url_for('passenger.cancel_ticket', booking_id=b.booking_id) }}">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle me-1"></i> {{ _('cancel_booking') }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>{{ _('cancel_confirm_msg') }} <strong>{{ b.booking_id }}</strong>?</p>
+                                                <ul class="small text-muted mb-3">
+                                                    <li>{{ _('route') }}: {{ b.schedule.route.route_name }} on {{ b.schedule.journey_date|format_date }}</li>
+                                                    <li>{{ _('allocated_seats') }}: {{ b.seat_numbers_list }}</li>
+                                                    <li>{{ _('refund_amount_note') }}: ₹{{ (b.total_amount * 0.90)|round(2) }}</li>
+                                                </ul>
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-semibold">{{ _('cancellation_reason') }}</label>
+                                                    <textarea class="form-control" name="reason" rows="2" placeholder="{{ _('optional_reason_placeholder') }}"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('keep_booking') }}</button>
+                                                <button type="submit" class="btn btn-danger">{{ _('confirm_cancellation') }}</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-ticket-perforated fs-1 d-block mb-2 text-secondary"></i>
+            {{ _('no_bookings_found') }}. <a href="{{ url_for('passenger.home') }}">{{ _('search_buses') }}</a>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

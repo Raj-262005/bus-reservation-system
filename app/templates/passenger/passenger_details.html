@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('passenger_details_title') }} - {{ _('Bus Reservation System') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('passenger.home') }}">{{ _('Home') }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('passenger.seat_selection', schedule_id=schedule.id) }}">{{ _('choose_seats') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ _('passenger_details_title') }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-lg-8">
+            <div class="custom-card p-4 p-md-5 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                    <div>
+                        <h4 class="fw-bold mb-1"><i class="bi bi-people-fill text-primary me-2"></i>{{ _('enter_passenger_details') }}</h4>
+                        <p class="text-muted small mb-0">{{ _('passenger_details_sub') }}</p>
+                    </div>
+                    <span class="badge bg-primary fs-6 px-3 py-2">{{ seats|length }} {{ _('seat_selected') }}</span>
+                </div>
+
+                <form method="POST" action="{{ url_for('passenger.passenger_details', schedule_id=schedule.id) }}">
+                    <!-- Passenger cards for each seat -->
+                    {% for seat in seats %}
+                    <div class="card mb-3 border-secondary-subtle">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                            <span class="fw-bold text-dark"><i class="bi bi-person me-1"></i> {{ _('passenger') }} {{ loop.index }}</span>
+                            <span class="badge bg-primary">{{ _('seat_no') }}: {{ seat.seat_number }} ({{ seat.deck }} Deck)</span>
+                        </div>
+                        <div class="card-body">
+                            <input type="hidden" name="seat_ids[]" value="{{ seat.id }}">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">{{ _('full_name') }} <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="name_{{ seat.id }}" 
+                                           placeholder="e.g. Rahul Sharma" 
+                                           value="{% if loop.first and current_user %}{{ current_user.name }}{% endif %}" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">{{ _('age') }} <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" name="age_{{ seat.id }}" 
+                                           placeholder="{{ _('age') }}" min="1" max="110" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">{{ _('gender') }} <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="gender_{{ seat.id }}" required>
+                                        <option value="" disabled selected>{{ _('select') }}</option>
+                                        <option value="Male">{{ _('male') }}</option>
+                                        <option value="Female">{{ _('female') }}</option>
+                                        <option value="Other">{{ _('other') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Contact Details Card -->
+                    <div class="card mb-4 border-info">
+                        <div class="card-header bg-info-subtle py-2">
+                            <h6 class="fw-bold text-info-emphasis mb-0"><i class="bi bi-telephone me-1"></i> {{ _('ticket_contact_info') }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">{{ _('email') }}</label>
+                                    <input type="email" class="form-control" name="contact_email" 
+                                           value="{{ current_user.email if current_user else '' }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">{{ _('phone_number') }}</label>
+                                    <input type="tel" class="form-control" name="contact_phone" 
+                                           value="{{ current_user.phone if current_user else '' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fare Summary & CTA -->
+                    <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                        <div>
+                            <span class="text-muted small d-block">{{ _('grand_total') }}:</span>
+                            <span class="fs-4 fw-bold text-success">{{ total_fare|currency }}</span>
+                        </div>
+                        <button type="submit" class="btn btn-warning btn-lg px-5 fw-bold text-dark shadow-sm">
+                            {{ _('continue_to_payment') }} <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

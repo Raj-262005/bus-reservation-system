@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('my_profile') }} - {{ _('Bus Reservation System') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-4 justify-content-center">
+        <!-- Personal Information Column -->
+        <div class="col-lg-6">
+            <div class="custom-card p-4 p-md-5 shadow-sm h-100">
+                <div class="d-flex align-items-center gap-3 mb-4 border-bottom pb-3">
+                    <div class="rounded-circle bg-primary-subtle text-primary p-3">
+                        <i class="bi bi-person-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">{{ _('personal_profile') }}</h4>
+                        <span class="badge bg-secondary-subtle text-secondary font-monospace">{{ user.role|upper }}</span>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('passenger.profile') }}">
+                    <input type="hidden" name="action" value="update_info">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ _('full_name') }}</label>
+                        <input type="text" class="form-control" name="name" value="{{ user.name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ _('email_address') }}</label>
+                        <input type="email" class="form-control" value="{{ user.email }}" disabled>
+                        <small class="text-muted">{{ _('email_cannot_change') }}</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">{{ _('phone_number') }}</label>
+                        <input type="tel" class="form-control" name="phone" value="{{ user.phone }}" pattern="[0-9]{10}" maxlength="15" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary fw-semibold">
+                        <i class="bi bi-check2 me-1"></i> {{ _('save_profile') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Change Password Column -->
+        <div class="col-lg-6">
+            <div class="custom-card p-4 p-md-5 shadow-sm h-100">
+                <div class="d-flex align-items-center gap-3 mb-4 border-bottom pb-3">
+                    <div class="rounded-circle bg-warning-subtle text-warning p-3">
+                        <i class="bi bi-shield-lock-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">{{ _('change_password') }}</h4>
+                        <small class="text-muted">{{ _('change_password_sub') }}</small>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('passenger.profile') }}">
+                    <input type="hidden" name="action" value="change_password">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ _('current_password') }}</label>
+                        <input type="password" class="form-control" name="current_password" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ _('new_password') }}</label>
+                        <input type="password" class="form-control" name="new_password" minlength="6" required>
+                        <small class="text-muted">{{ _('min_6_chars') }}</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">{{ _('confirm_new_password') }}</label>
+                        <input type="password" class="form-control" name="confirm_password" minlength="6" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning fw-bold text-dark">
+                        <i class="bi bi-key-fill me-1"></i> {{ _('update_password') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
