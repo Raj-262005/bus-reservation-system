@@ -16,19 +16,29 @@ app = create_app()
 class VercelPathFixMiddleware:
     """
     WSGI middleware ensuring requests rewritten by Vercel to /api/index,
-    /api/index.py, or /api are properly mapped to internal Flask routes.
+    /api/index/<path>, /api/index.py, or via HTTP_X_MATCHED_PATH
+    are properly mapped to internal Flask routes with full query strings.
     """
     def __init__(self, wsgi_app):
         self.wsgi_app = wsgi_app
 
     def __call__(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
-        if path_info.startswith('/api/index.py'):
-            environ['PATH_INFO'] = path_info[len('/api/index.py'):] or '/'
+
+        # 1. Prefer original matched path if forwarded by Vercel edge
+        matched_path = environ.get('HTTP_X_MATCHED_PATH', '')
+        if matched_path and not matched_path.startswith('/api'):
+            environ['PATH_INFO'] = matched_path.split('?')[0] or '/'
+        elif path_info.startswith('/api/index.py'):
+            remainder = path_info[len('/api/index.py'):]
+            environ['PATH_INFO'] = remainder if remainder else '/'
         elif path_info.startswith('/api/index'):
-            environ['PATH_INFO'] = path_info[len('/api/index'):] or '/'
+            remainder = path_info[len('/api/index'):]
+            environ['PATH_INFO'] = remainder if remainder else '/'
         elif path_info.startswith('/api'):
-            environ['PATH_INFO'] = path_info[len('/api'):] or '/'
+            remainder = path_info[len('/api'):]
+            environ['PATH_INFO'] = remainder if remainder else '/'
+
         return self.wsgi_app(environ, start_response)
 
 

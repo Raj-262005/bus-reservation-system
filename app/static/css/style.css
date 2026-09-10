@@ -32,11 +32,37 @@ body {
 /* Navbar */
 .navbar-custom {
   background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  position: sticky;
+  top: 0;
+  z-index: 1040;
+  width: 100%;
 }
 .navbar-brand {
   font-weight: 700;
   letter-spacing: -0.5px;
+}
+.nav-actions {
+  flex-wrap: nowrap;
+}
+.nav-actions .btn {
+  white-space: nowrap;
+}
+@media (max-width: 991.98px) {
+  .nav-actions {
+    flex-direction: column;
+    align-items: stretch !important;
+    width: 100%;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .nav-actions .btn,
+  .nav-actions .dropdown,
+  .nav-actions .dropdown-toggle {
+    width: 100%;
+    justify-content: center;
+  }
 }
 .role-pill {
   font-size: 0.75rem;

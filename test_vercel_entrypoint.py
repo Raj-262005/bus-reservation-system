@@ -35,7 +35,12 @@ with app.app_context():
     res_root = client.get('/')
     assert res_root.status_code == 200, f"GET '/' failed: {res_root.status_code}"
     assert b"Bus" in res_root.data or b"Book" in res_root.data
-    print("✓ GET '/' loaded successfully (HTTP 200).")
+    # Verify Login & Register buttons are present in the initial top navigation
+    assert b"Login" in res_root.data, "Login button must be present in initial HTML"
+    assert b"Register" in res_root.data, "Register button must be present in initial HTML"
+    assert b"nav-actions" in res_root.data, "nav-actions class must be used for right navbar"
+    assert b"flex-nowrap" in res_root.data, "nav-actions must use flex-nowrap to prevent clipping"
+    print("✓ GET '/' loaded successfully (HTTP 200) with visible Login/Register buttons.")
 
     res_api = client.get('/api')
     assert res_api.status_code == 200, f"GET '/api' failed: {res_api.status_code}"
@@ -49,13 +54,30 @@ with app.app_context():
     assert res_py.status_code == 200, f"GET '/api/index.py' failed: {res_py.status_code}"
     print("✓ GET '/api/index.py' mapped to home successfully (HTTP 200).")
 
-    # 4. Bus Search
-    print("\n--- 3. Testing Bus Search ---")
+    # 4. Bus Search (Real Search: Hyderabad -> Mumbai)
+    print("\n--- 3. Testing Real Bus Search (Hyderabad -> Mumbai) ---")
     today_str = date.today().strftime('%Y-%m-%d')
-    res = client.get(f'/search?source=Mumbai&destination=Pune&journey_date={today_str}')
-    assert res.status_code == 200, f"Search failed: {res.status_code}"
-    assert b"Mumbai" in res.data and b"Pune" in res.data
-    print("✓ Bus search working.")
+    # Direct /search
+    res_search_direct = client.get(f'/search?source=Hyderabad&destination=Mumbai&journey_date={today_str}&bus_type=ALL')
+    assert res_search_direct.status_code == 200, f"Direct search failed: {res_search_direct.status_code}"
+    assert b"Hyderabad" in res_search_direct.data and b"Mumbai" in res_search_direct.data
+    assert b"book" in res_search_direct.data.lower() or b"seats" in res_search_direct.data.lower()
+    print("✓ Direct '/search' returned real Hyderabad -> Mumbai schedules (HTTP 200).")
+
+    # Rewritten /api/index/search (Simulating Vercel dynamic rewrite /api/index/$1)
+    res_search_rewritten = client.get(f'/api/index/search?source=Hyderabad&destination=Mumbai&journey_date={today_str}&bus_type=ALL')
+    assert res_search_rewritten.status_code == 200, f"Rewritten search failed: {res_search_rewritten.status_code}"
+    assert b"Hyderabad" in res_search_rewritten.data and b"Mumbai" in res_search_rewritten.data
+    print("✓ Rewritten '/api/index/search' returned real Hyderabad -> Mumbai schedules (HTTP 200).")
+
+    # Vercel X-Matched-Path header check
+    res_search_header = client.get(
+        f'/api/index?source=Hyderabad&destination=Mumbai&journey_date={today_str}&bus_type=ALL',
+        headers={'X-Matched-Path': f'/search?source=Hyderabad&destination=Mumbai&journey_date={today_str}&bus_type=ALL'}
+    )
+    assert res_search_header.status_code == 200
+    assert b"Hyderabad" in res_search_header.data and b"Mumbai" in res_search_header.data
+    print("✓ Search via Vercel X-Matched-Path header returned real schedules (HTTP 200).")
 
     # 5. Seat Layout & Selection
     print("\n--- 4. Testing Seat Selection Page ---")
