@@ -30,12 +30,24 @@ assert '/tmp/' in app.config.get('SQLALCHEMY_DATABASE_URI') or app.config.get('S
 client = app.test_client()
 
 with app.app_context():
-    # 3. Passenger Home Page
-    print("\n--- 2. Testing Home Page ---")
-    res = client.get('/')
-    assert res.status_code == 200, f"Home page failed: {res.status_code}"
-    assert b"Bus" in res.data or b"Book" in res.data
-    print("✓ Home page loaded.")
+    # 3. Passenger Home Page & Vercel rewrite endpoints
+    print("\n--- 2. Testing Home Page & Rewrite Paths ---")
+    res_root = client.get('/')
+    assert res_root.status_code == 200, f"GET '/' failed: {res_root.status_code}"
+    assert b"Bus" in res_root.data or b"Book" in res_root.data
+    print("✓ GET '/' loaded successfully (HTTP 200).")
+
+    res_api = client.get('/api')
+    assert res_api.status_code == 200, f"GET '/api' failed: {res_api.status_code}"
+    print("✓ GET '/api' mapped to home successfully (HTTP 200).")
+
+    res_index = client.get('/api/index')
+    assert res_index.status_code == 200, f"GET '/api/index' failed: {res_index.status_code}"
+    print("✓ GET '/api/index' mapped to home successfully (HTTP 200).")
+
+    res_py = client.get('/api/index.py')
+    assert res_py.status_code == 200, f"GET '/api/index.py' failed: {res_py.status_code}"
+    print("✓ GET '/api/index.py' mapped to home successfully (HTTP 200).")
 
     # 4. Bus Search
     print("\n--- 3. Testing Bus Search ---")
