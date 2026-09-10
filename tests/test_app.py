@@ -168,7 +168,10 @@ def test_atomic_booking_flow(app):
 
         assert booking is not None
         assert booking.booking_status == 'CONFIRMED'
-        assert booking.total_amount == 600.0  # 300 * 2
+        assert booking.base_amount == 600.0  # 300 * 2
+        assert booking.gst_rate == 5.0
+        assert booking.gst_amount == 30.0  # 5% of 600
+        assert booking.total_amount == 630.0  # 600 + 30
         assert len(booking.passengers) == 2
         assert sched.available_seats_count == 18
 
@@ -228,7 +231,9 @@ def test_cancellation_and_seat_release(app):
         # Cancel ticket
         cancelled_booking, refund = BookingService.cancel_booking(booking.booking_id, user, reason="Trip postponed")
         assert cancelled_booking.booking_status == 'CANCELLED'
-        assert refund == 270.0  # 90% of 300
+        # 1 seat @ 300 => Base 300 + GST 15 = 315. Refund = 90% of 315 = 283.5
+        assert cancelled_booking.total_amount == 315.0
+        assert refund == 283.5
         assert cancelled_booking.cancellation.refund_status == 'PROCESSED'
 
         # Verify seat is immediately released back to available!

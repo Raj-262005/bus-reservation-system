@@ -54,13 +54,12 @@ with app.app_context():
         'contact_phone': '9876543212'
     }, follow_redirects=True)
     assert res.status_code == 200
-    assert b"Select Payment Method" in res.data
+    assert b"UPI QR Code Payment" in res.data or b"upi_qr.jpeg" in res.data
     print("✓ Passenger details collected and checkout loaded.")
 
     print("\n--- 6. Testing Payment & Booking Confirmation ---")
     res = client.post('/payment/demo/process', data={
-        'payment_method': 'UPI',
-        'upi_id': 'passenger@okaxis'
+        'payment_method': 'UPI_QR'
     }, follow_redirects=True)
     assert res.status_code == 200
     assert b"Booking Confirmed!" in res.data

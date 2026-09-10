@@ -44,6 +44,7 @@
                         <small class="text-muted d-block">{{ _('allocated_seats') }}</small>
                         <span class="badge bg-secondary-subtle text-secondary fs-6">{{ b.seat_numbers_list }}</span>
                         <div class="fw-bold text-dark mt-1">{{ b.total_amount|currency }}</div>
+                        <small class="text-muted d-block" style="font-size: 0.72rem;">{{ _('base_fare') }}: {{ b.computed_base_amount|currency }} | {{ _('gst') }}: {{ b.computed_gst_amount|currency }}</small>
                     </div>
 
                     <div class="col-md-3 text-md-end">
@@ -80,6 +81,8 @@
                                                     <div><strong>{{ _('route') }}:</strong> {{ b.schedule.route.route_name }}</div>
                                                     <div><strong>{{ _('date_of_journey') }}:</strong> {{ b.schedule.journey_date|format_date }}</div>
                                                     <div><strong>{{ _('allocated_seats') }}:</strong> {{ b.seat_numbers_list }}</div>
+                                                    <div><strong>{{ _('ticket_fare') }}:</strong> {{ b.computed_base_amount|currency }}</div>
+                                                    <div><strong>{{ _('gst') }} ({{ (b.gst_rate or 5.0)|int }}%):</strong> {{ b.computed_gst_amount|currency }}</div>
                                                     <div><strong>{{ _('total_paid') }}:</strong> {{ b.total_amount|currency }}</div>
                                                     <div class="text-success fw-bold mt-1">{{ _('refund_amount_note') }}: ₹{{ (b.total_amount * 0.90)|round(2) }}</div>
                                                 </div>

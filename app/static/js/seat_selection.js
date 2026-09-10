@@ -7,12 +7,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!seatContainer) return;
 
     const baseFare = parseFloat(seatContainer.dataset.fare) || 0;
+    const gstRate = parseFloat(seatContainer.dataset.gstRate) || 5.0;
     const scheduleId = seatContainer.dataset.scheduleId;
     const maxSeats = 6;
 
     let selectedSeats = []; // Array of { id, seatNumber }
 
     const selectedCountEl = document.getElementById('selectedSeatCount');
+    const baseFareEl = document.getElementById('baseFareDisplay');
+    const gstFareEl = document.getElementById('gstFareDisplay');
     const totalFareEl = document.getElementById('totalFareDisplay');
     const selectedListEl = document.getElementById('selectedSeatsBadges');
     const proceedBtn = document.getElementById('proceedToBookingBtn');
@@ -52,10 +55,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateSummary() {
         const count = selectedSeats.length;
-        const total = (count * baseFare).toFixed(2);
+        const baseAmount = Math.round(count * baseFare * 100) / 100;
+        const gstAmount = Math.round(baseAmount * (gstRate / 100) * 100) / 100;
+        const totalAmount = Math.round((baseAmount + gstAmount) * 100) / 100;
 
         if (selectedCountEl) selectedCountEl.textContent = count;
-        if (totalFareEl) totalFareEl.textContent = `₹${parseFloat(total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+        if (baseFareEl) baseFareEl.textContent = `₹${baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        if (gstFareEl) gstFareEl.textContent = `₹${gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        if (totalFareEl) totalFareEl.textContent = `₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
         // Render badges
         if (selectedListEl) {

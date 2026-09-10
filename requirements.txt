@@ -10,3 +10,5 @@ razorpay>=1.4.1
 pytest>=8.0.0
 gunicorn>=21.2.0
 psycopg2-binary>=2.9.9
+qrcode>=8.0.0
+pillow>=10.0.0

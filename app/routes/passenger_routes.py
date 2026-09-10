@@ -3,7 +3,7 @@ from datetime import datetime, date
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
 from app.models import db, User, Bus, Route, Schedule, Seat, Booking, BookingPassenger, Payment, Cancellation
 from app.utils.decorators import login_required, roles_accepted, get_current_user
-from app.utils.helpers import validate_email, validate_phone, validate_password
+from app.utils.helpers import validate_email, validate_phone, validate_password, calculate_fare_and_gst
 from app.services.booking_service import BookingService, BookingException, SeatAlreadyBookedException
 from app.services.payment_service import PaymentService
 
@@ -143,12 +143,16 @@ def passenger_details(schedule_id):
 
         # Pass current user info if logged in
         current_user = get_current_user()
-        total_fare = schedule.fare * len(seats)
+        pricing = calculate_fare_and_gst(schedule.fare, len(seats))
 
         return render_template('passenger/passenger_details.html',
                                schedule=schedule,
                                seats=seats,
-                               total_fare=total_fare,
+                               pricing=pricing,
+                               base_amount=pricing['base_amount'],
+                               gst_rate=pricing['gst_rate'],
+                               gst_amount=pricing['gst_amount'],
+                               total_fare=pricing['total_amount'],
                                current_user=current_user)
 
     # POST: User submits passenger information for the selected seats
@@ -208,7 +212,12 @@ def checkout():
     for p in pending['passengers_data']:
         p['seat_number'] = seat_map.get(p['seat_id'], 'N/A')
 
-    total_amount = schedule.fare * len(pending['passengers_data'])
+    pricing = calculate_fare_and_gst(schedule.fare, len(pending['passengers_data']))
+    base_amount = pricing['base_amount']
+    gst_rate = pricing['gst_rate']
+    gst_amount = pricing['gst_amount']
+    total_amount = pricing['total_amount']
+
     demo_mode = current_app.config.get('DEMO_PAYMENT_MODE', True)
     razorpay_configured = PaymentService.is_razorpay_configured()
     razorpay_key_id = current_app.config.get('RAZORPAY_KEY_ID', '')
@@ -220,10 +229,35 @@ def checkout():
             receipt=f"rcpt_{session['user_id']}_{schedule.id}"
         )
 
+    # Generate Dynamic UPI Payment URI & QR Code with auto-filled total amount
+    upi_id = current_app.config.get('UPI_ID', 'rajthakare2005@oksbi')
+    upi_payee_name = current_app.config.get('UPI_PAYEE_NAME', 'Raj Thakare')
+    upi_note = f"BRS-{schedule.bus.bus_number}"
+    upi_uri = PaymentService.build_upi_uri(
+        amount=total_amount,
+        note=upi_note,
+        upi_id=upi_id,
+        payee_name=upi_payee_name
+    )
+    dynamic_qr_b64 = PaymentService.generate_dynamic_upi_qr(
+        amount=total_amount,
+        note=upi_note,
+        upi_id=upi_id,
+        payee_name=upi_payee_name
+    )
+
     return render_template('passenger/payment.html',
                            schedule=schedule,
                            passengers=pending['passengers_data'],
+                           pricing=pricing,
+                           base_amount=base_amount,
+                           gst_rate=gst_rate,
+                           gst_amount=gst_amount,
                            total_amount=total_amount,
+                           dynamic_qr_b64=dynamic_qr_b64,
+                           upi_uri=upi_uri,
+                           upi_id=upi_id,
+                           upi_payee_name=upi_payee_name,
                            demo_mode=demo_mode,
                            razorpay_configured=razorpay_configured,
                            razorpay_key_id=razorpay_key_id,
@@ -238,14 +272,14 @@ def process_demo_payment():
         flash("Your booking session has expired. Please select your seats again.", "danger")
         return redirect(url_for('passenger.home'))
 
-    method = request.form.get('payment_method', 'UPI')
+    method = request.form.get('payment_method', 'UPI_QR')
     simulate_failure = request.form.get('simulate_failure') == '1'
 
-    # Check simulated payment status
+    # Check payment confirmation status
     success, txn_id, msg = PaymentService.process_demo_payment(method, simulate_failure=simulate_failure)
 
     if not success:
-        flash(f"Payment Failed: {msg}. No seats were reserved. Please try again.", "danger")
+        flash(f"Payment Confirmation Failed: {msg}. No seats were reserved. Please try again.", "danger")
         return redirect(url_for('passenger.checkout'))
 
     # Atomic Booking Execution
@@ -262,7 +296,7 @@ def process_demo_payment():
         # Clear provisional session data
         session.pop('pending_booking', None)
 
-        flash("Payment successful! Your booking is confirmed.", "success")
+        flash("Payment confirmation recorded! Your booking is confirmed.", "success")
         return redirect(url_for('passenger.booking_confirmed', booking_id=booking.booking_id))
 
     except SeatAlreadyBookedException as e:

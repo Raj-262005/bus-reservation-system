@@ -438,7 +438,9 @@ def reports():
     filtered_bookings = query.order_by(Booking.created_at.desc()).all()
 
     total_tickets = sum(b.total_passengers for b in filtered_bookings)
-    total_rev = sum(b.total_amount for b in filtered_bookings)
+    total_rev = round(sum(b.total_amount for b in filtered_bookings), 2)
+    total_base = round(sum(b.computed_base_amount for b in filtered_bookings), 2)
+    total_gst = round(sum(b.computed_gst_amount for b in filtered_bookings), 2)
 
     buses = Bus.query.filter_by(is_active=True).all()
     routes = Route.query.filter_by(is_active=True).all()
@@ -447,6 +449,8 @@ def reports():
                            bookings=filtered_bookings,
                            total_tickets=total_tickets,
                            total_rev=total_rev,
+                           total_base=total_base,
+                           total_gst=total_gst,
                            buses=buses,
                            routes=routes,
                            start_date=start_date_str,

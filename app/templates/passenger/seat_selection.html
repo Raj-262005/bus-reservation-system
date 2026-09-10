@@ -69,6 +69,7 @@
                 <!-- Bus Cabin & Seats -->
                 <div class="bus-container mx-auto" id="busSeatGrid" 
                      data-fare="{{ schedule.fare }}" 
+                     data-gst-rate="{{ config.get('GST_RATE', 5.0) }}"
                      data-schedule-id="{{ schedule.id }}"
                      data-no-seats-text="{{ _('no_seats_selected') }}"
                      data-max-seats-alert="{{ _('max_seats_alert') }}">
@@ -156,12 +157,20 @@
                     <table class="table table-sm table-borderless mb-0">
                         <tbody>
                             <tr>
-                                <td class="text-secondary">{{ _('base_fare') }}</td>
+                                <td class="text-secondary">{{ _('fare_per_seat') }}</td>
                                 <td class="text-end fw-semibold">{{ schedule.fare|currency }}</td>
                             </tr>
                             <tr>
                                 <td class="text-secondary">{{ _('selected_seats_count') }}</td>
                                 <td class="text-end fw-semibold" id="selectedSeatCount">0</td>
+                            </tr>
+                            <tr class="border-top">
+                                <td class="text-secondary">{{ _('ticket_fare') }}</td>
+                                <td class="text-end fw-semibold" id="baseFareDisplay">₹0.00</td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary">{{ _('gst') }} ({{ config.get('GST_RATE', 5.0)|int }}%)</td>
+                                <td class="text-end fw-semibold text-secondary" id="gstFareDisplay">₹0.00</td>
                             </tr>
                             <tr class="border-top">
                                 <td class="fw-bold fs-5 text-dark pt-2">{{ _('total_amount') }}</td>

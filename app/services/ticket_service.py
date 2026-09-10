@@ -222,10 +222,22 @@ class TicketService:
                 Paragraph(pay_txn, value_style),
             ],
             [
-                Paragraph("<b>Grand Total Paid:</b>", ParagraphStyle('TotalBold', parent=label_style, fontSize=11, textColor=colors.HexColor('#0f172a'))),
-                Paragraph(f"<b>INR {total_fare:.2f}</b>", ParagraphStyle('TotalAmt', parent=value_style, fontSize=11, textColor=colors.HexColor('#166534'))),
+                Paragraph("<b>Ticket Base Fare:</b>", label_style),
+                Paragraph(f"INR {booking.computed_base_amount:.2f}", value_style),
                 Paragraph("<b>Payment Status:</b>", label_style),
                 Paragraph(f"<b>{pay_status}</b>", value_style),
+            ],
+            [
+                Paragraph(f"<b>GST ({int(booking.gst_rate) if booking.gst_rate else 5}%):</b>", label_style),
+                Paragraph(f"INR {booking.computed_gst_amount:.2f}", value_style),
+                Paragraph("<b>Tax Specification:</b>", label_style),
+                Paragraph("Passenger Transport GST", value_style),
+            ],
+            [
+                Paragraph("<b>Grand Total Paid:</b>", ParagraphStyle('TotalBold', parent=label_style, fontSize=11, textColor=colors.HexColor('#0f172a'))),
+                Paragraph(f"<b>INR {total_fare:.2f}</b>", ParagraphStyle('TotalAmt', parent=value_style, fontSize=11, textColor=colors.HexColor('#166534'))),
+                Paragraph("<b>Ticket Status:</b>", label_style),
+                Paragraph(f"<b>{booking.booking_status}</b>", value_style),
             ]
         ]
         pay_table = Table(pay_data, colWidths=[140, 130, 120, 150])

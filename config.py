@@ -1,4 +1,5 @@
 import os
+import tempfile
 from datetime import timedelta
 from dotenv import load_dotenv
 
@@ -51,10 +52,16 @@ class Config:
         if mysql_accessible:
             SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{mysql_user}:{mysql_pass}@{mysql_host}:{mysql_port}/{mysql_db}?charset=utf8mb4"
         else:
-            sqlite_path = os.path.join(basedir, 'bus_reservation.db')
+            if os.environ.get('VERCEL'):
+                sqlite_path = os.path.join(tempfile.gettempdir(), 'bus_reservation.db')
+            else:
+                sqlite_path = os.path.join(basedir, 'bus_reservation.db')
             SQLALCHEMY_DATABASE_URI = f"sqlite:///{sqlite_path}"
     else:
-        sqlite_path = os.path.join(basedir, 'bus_reservation.db')
+        if os.environ.get('VERCEL'):
+            sqlite_path = os.path.join(tempfile.gettempdir(), 'bus_reservation.db')
+        else:
+            sqlite_path = os.path.join(basedir, 'bus_reservation.db')
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{sqlite_path}"
 
     SQLALCHEMY_ENGINE_OPTIONS = {
@@ -67,8 +74,18 @@ class Config:
     RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
     DEMO_PAYMENT_MODE = os.environ.get('DEMO_PAYMENT_MODE', 'True').lower() in ('true', '1', 't', 'yes')
 
-    # Uploads & Tickets
-    TICKETS_DIR = os.path.join(basedir, 'app', 'static', 'generated_tickets')
+    # GST / Tax Settings (5% default rate for bus transportation)
+    GST_RATE = float(os.environ.get('GST_RATE', 5.0))
+
+    # UPI Dynamic Payment QR Settings
+    UPI_ID = os.environ.get('UPI_ID', 'rajthakare2005@oksbi')
+    UPI_PAYEE_NAME = os.environ.get('UPI_PAYEE_NAME', 'Raj Thakare')
+
+    # Uploads & Tickets (Use ephemeral temp directory on Vercel's read-only container)
+    if os.environ.get('VERCEL'):
+        TICKETS_DIR = os.path.join(tempfile.gettempdir(), 'generated_tickets')
+    else:
+        TICKETS_DIR = os.path.join(basedir, 'app', 'static', 'generated_tickets')
 
 
 class TestConfig(Config):

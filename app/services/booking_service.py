@@ -1,6 +1,6 @@
 from datetime import datetime, timezone, date
 from app.models import db, Booking, BookingPassenger, Schedule, Seat, Payment, Cancellation, ActivityLog
-from app.utils.helpers import generate_booking_id, generate_transaction_id
+from app.utils.helpers import generate_booking_id, generate_transaction_id, calculate_fare_and_gst
 
 
 class BookingException(Exception):
@@ -98,9 +98,13 @@ class BookingService:
                     f"Seat(s) {', '.join(conflict_seat_numbers)} have already been booked by another passenger. Please choose different seats."
                 )
 
-            # Calculate total amount
+            # Authoritative Server-Side Fare & GST Calculation
             total_passengers = len(passengers_data)
-            total_amount = round(schedule.fare * total_passengers, 2)
+            pricing = calculate_fare_and_gst(schedule.fare, total_passengers)
+            base_amount = pricing['base_amount']
+            gst_rate = pricing['gst_rate']
+            gst_amount = pricing['gst_amount']
+            total_amount = pricing['total_amount']
             booking_code = generate_booking_id()
 
             # Create Master Booking
@@ -109,6 +113,9 @@ class BookingService:
                 user_id=user_id,
                 schedule_id=schedule_id,
                 total_passengers=total_passengers,
+                base_amount=base_amount,
+                gst_rate=gst_rate,
+                gst_amount=gst_amount,
                 total_amount=total_amount,
                 booking_status='CONFIRMED' if payment_status == 'SUCCESS' else 'PENDING'
             )

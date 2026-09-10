@@ -57,17 +57,102 @@ class PaymentService:
             return False
 
     @staticmethod
-    def process_demo_payment(method, card_or_upi_info=None, simulate_failure=False):
+    def build_upi_uri(amount, note='BusReserve Booking', ref=None, upi_id=None, payee_name=None):
         """
-        Simulates demo payment processing without external APIs.
-        Supports UPI, Card, Net Banking.
+        Builds standard NPCI UPI URI string with pre-filled amount.
+        Format: upi://pay?pa={upi_id}&pn={payee_name}&am={amount:.2f}&cu=INR&tn={note}
+        """
+        from urllib.parse import quote
+        if not upi_id:
+            try:
+                from flask import current_app
+                upi_id = current_app.config.get('UPI_ID', 'rajthakare2005@oksbi')
+            except Exception:
+                upi_id = 'rajthakare2005@oksbi'
+
+        if not payee_name:
+            try:
+                from flask import current_app
+                payee_name = current_app.config.get('UPI_PAYEE_NAME', 'Raj Thakare')
+            except Exception:
+                payee_name = 'Raj Thakare'
+
+        amount_val = float(amount)
+        amount_str = f"{amount_val:.2f}"
+
+        encoded_pa = quote(str(upi_id).strip(), safe='@')
+        encoded_pn = quote(str(payee_name).strip())
+        encoded_tn = quote(str(note or 'BusReserve Booking').strip())
+
+        params = [
+            f"pa={encoded_pa}",
+            f"pn={encoded_pn}",
+            f"am={amount_str}",
+            "cu=INR",
+            f"tn={encoded_tn}"
+        ]
+        if ref:
+            params.append(f"tr={quote(str(ref).strip())}")
+
+        return "upi://pay?" + "&".join(params)
+
+    @staticmethod
+    def generate_dynamic_upi_qr(amount, note=None, ref=None, upi_id=None, payee_name=None):
+        """
+        Generates a dynamic UPI QR Code containing the pre-filled authoritative amount.
+        Returns a base64 encoded PNG data URI string: data:image/png;base64,...
+        Falls back to None if generation fails.
+        """
+        import io
+        import base64
+        try:
+            import qrcode
+            uri = PaymentService.build_upi_uri(
+                amount=amount,
+                note=note or 'BusReserve Booking',
+                ref=ref,
+                upi_id=upi_id,
+                payee_name=payee_name
+            )
+            qr = qrcode.QRCode(
+                version=None,
+                error_correction=qrcode.constants.ERROR_CORRECT_M,
+                box_size=10,
+                border=3,
+            )
+            qr.add_data(uri)
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+
+            buf = io.BytesIO()
+            img.save(buf, format='PNG')
+            buf.seek(0)
+            b64_str = base64.b64encode(buf.read()).decode('utf-8')
+            return f"data:image/png;base64,{b64_str}"
+        except Exception as e:
+            try:
+                from flask import current_app
+                current_app.logger.error(f"Dynamic QR generation error: {e}")
+            except Exception:
+                pass
+            return None
+
+    @staticmethod
+    def process_demo_payment(method='UPI_QR', card_or_upi_info=None, simulate_failure=False):
+        """
+        Records payment confirmation for external UPI QR / demo payments without simulated fake bank claims.
         Returns (success: bool, transaction_id: str, message: str)
         """
         import uuid
         from datetime import datetime
 
         if simulate_failure:
-            return False, None, "Payment was declined by the simulated bank (Simulated failure test)."
+            return False, None, "Payment was not completed or confirmation was declined (Simulated test)."
 
-        txn_id = f"DEMO-{method.upper()}-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6].upper()}"
-        return True, txn_id, "Demo payment processed successfully."
+        norm_method = (method or 'UPI_QR').upper().replace(' ', '_')
+        if 'UPI' in norm_method:
+            txn_id = f"UPI-CONFIRM-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6].upper()}"
+        else:
+            txn_id = f"DEMO-{norm_method}-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6].upper()}"
+
+        return True, txn_id, "Payment confirmation recorded successfully."

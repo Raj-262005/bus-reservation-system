@@ -83,10 +83,11 @@
                     </div>
 
                     <!-- Fare Summary & CTA -->
-                    <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                    <div class="d-flex justify-content-between align-items-center border-top pt-3 flex-wrap gap-2">
                         <div>
-                            <span class="text-muted small d-block">{{ _('grand_total') }}:</span>
+                            <span class="text-muted small d-block">{{ _('total_amount') }}:</span>
                             <span class="fs-4 fw-bold text-success">{{ total_fare|currency }}</span>
+                            <small class="text-muted d-block">({{ _('ticket_fare') }}: {{ base_amount|currency }} + {{ _('gst') }} {{ gst_rate|int }}%: {{ gst_amount|currency }})</small>
                         </div>
                         <button type="submit" class="btn btn-warning btn-lg px-5 fw-bold text-dark shadow-sm">
                             {{ _('continue_to_payment') }} <i class="bi bi-arrow-right ms-1"></i>

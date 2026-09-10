@@ -194,12 +194,29 @@ class Booking(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='RESTRICT'), nullable=False, index=True)
     schedule_id = db.Column(db.Integer, db.ForeignKey('schedules.id', ondelete='RESTRICT'), nullable=False, index=True)
     total_passengers = db.Column(db.Integer, nullable=False, default=1)
+    base_amount = db.Column(db.Float, nullable=False, default=0.0)
+    gst_rate = db.Column(db.Float, nullable=False, default=5.0)
+    gst_amount = db.Column(db.Float, nullable=False, default=0.0)
     total_amount = db.Column(db.Float, nullable=False)
     booking_status = db.Column(db.String(20), nullable=False, default='CONFIRMED', index=True)  # CONFIRMED, CANCELLED, PENDING
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     cancellation_reason = db.Column(db.String(255), nullable=True)
     cancelled_at = db.Column(db.DateTime, nullable=True)
+
+    # Computed helpers for fallback / legacy bookings
+    @property
+    def computed_base_amount(self):
+        if self.base_amount is not None and self.base_amount > 0:
+            return round(self.base_amount, 2)
+        rate = self.gst_rate if self.gst_rate is not None else 5.0
+        return round(self.total_amount / (1.0 + (rate / 100.0)), 2)
+
+    @property
+    def computed_gst_amount(self):
+        if self.gst_amount is not None and self.gst_amount > 0:
+            return round(self.gst_amount, 2)
+        return round(self.total_amount - self.computed_base_amount, 2)
 
     # Relationships
     passengers = db.relationship('BookingPassenger', backref='booking', lazy=True, cascade='all, delete-orphan')

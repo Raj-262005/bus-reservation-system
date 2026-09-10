@@ -57,7 +57,7 @@
             <div class="custom-card p-3 border-start border-4 border-success">
                 <span class="text-muted small text-uppercase fw-semibold">{{ _('filtered_revenue') }}</span>
                 <h3 class="fw-bold text-success mb-0 mt-1">{{ total_rev|currency }}</h3>
-                <small class="text-muted">{{ _('total_earnings_selection') }}</small>
+                <small class="text-muted d-block">Base: {{ total_base|currency }} | GST: {{ total_gst|currency }}</small>
             </div>
         </div>
         <div class="col-md-4">
@@ -102,7 +102,10 @@
                         <td>{{ b.schedule.route.route_name }}</td>
                         <td>{{ b.schedule.bus.bus_name }}</td>
                         <td><span class="badge bg-secondary-subtle text-secondary">{{ b.seat_numbers_list }}</span></td>
-                        <td class="fw-bold text-success">{{ b.total_amount|currency }}</td>
+                        <td>
+                            <div class="fw-bold text-success">{{ b.total_amount|currency }}</div>
+                            <small class="text-muted d-block" style="font-size: 0.72rem;">Base: {{ b.computed_base_amount|currency }} + GST: {{ b.computed_gst_amount|currency }}</small>
+                        </td>
                         <td>{{ b.latest_payment.payment_method if b.latest_payment else 'UPI' }}</td>
                     </tr>
                     {% else %}

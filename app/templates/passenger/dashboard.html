@@ -122,7 +122,10 @@
                         <td>{{ b.schedule.route.source_city }} &rarr; {{ b.schedule.route.destination_city }}</td>
                         <td>{{ b.schedule.bus.bus_name }}</td>
                         <td><span class="badge bg-secondary-subtle text-secondary">{{ b.seat_numbers_list }}</span></td>
-                        <td class="fw-bold">{{ b.total_amount|currency }}</td>
+                        <td>
+                            <span class="fw-bold text-dark">{{ b.total_amount|currency }}</span>
+                            <small class="text-muted d-block" style="font-size: 0.72rem;">{{ b.computed_base_amount|currency }} + {{ _('gst') }}: {{ b.computed_gst_amount|currency }}</small>
+                        </td>
                         <td>
                             {% if b.booking_status == 'CONFIRMED' %}
                                 <span class="badge badge-confirmed px-2 py-1">{{ _('confirmed') }}</span>
@@ -157,6 +160,8 @@
                                                 <ul class="small text-muted mb-3">
                                                     <li>{{ _('route') }}: {{ b.schedule.route.route_name }} on {{ b.schedule.journey_date|format_date }}</li>
                                                     <li>{{ _('allocated_seats') }}: {{ b.seat_numbers_list }}</li>
+                                                    <li>{{ _('ticket_fare') }}: {{ b.computed_base_amount|currency }} + {{ _('gst') }} ({{ (b.gst_rate or 5.0)|int }}%): {{ b.computed_gst_amount|currency }}</li>
+                                                    <li>{{ _('total_paid') }}: {{ b.total_amount|currency }}</li>
                                                     <li>{{ _('refund_amount_note') }}: ₹{{ (b.total_amount * 0.90)|round(2) }}</li>
                                                 </ul>
                                                 <div class="mb-3">

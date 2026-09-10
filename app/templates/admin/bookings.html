@@ -57,7 +57,10 @@
                         <td>
                             <span class="badge bg-secondary-subtle text-secondary">{{ b.seat_numbers_list }}</span>
                         </td>
-                        <td class="fw-bold">{{ b.total_amount|currency }}</td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ b.total_amount|currency }}</div>
+                            <small class="text-muted d-block" style="font-size: 0.72rem;">Base: {{ b.computed_base_amount|currency }} + GST: {{ b.computed_gst_amount|currency }}</small>
+                        </td>
                         <td>
                             <span class="badge bg-info-subtle text-info">{{ b.latest_payment.payment_status if b.latest_payment else 'PAID' }}</span>
                         </td>

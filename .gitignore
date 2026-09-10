@@ -18,7 +18,8 @@ instance/
 app/static/generated_tickets/*
 !app/static/generated_tickets/.gitkeep
 
-# Pytest / IDE
+# Pytest / IDE / Vercel
 .pytest_cache/
 .vscode/
 .idea/
+.vercel/

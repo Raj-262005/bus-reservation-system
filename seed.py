@@ -3,7 +3,7 @@ import math
 from datetime import datetime, date, time, timedelta, timezone
 from app import create_app
 from app.models import db, User, Bus, Route, Schedule, Seat, Booking, BookingPassenger, Payment, ActivityLog
-from app.utils.helpers import generate_booking_id, generate_transaction_id
+from app.utils.helpers import generate_booking_id, generate_transaction_id, calculate_fare_and_gst
 
 app = create_app()
 
@@ -62,8 +62,9 @@ def calculate_route_metrics(src, dst):
     return road_km, f"{hours}h {mins:02d}m", hours, mins
 
 
-def seed_database():
-    with app.app_context():
+def seed_database(app_instance=None):
+    target_app = app_instance or app
+    with target_app.app_context():
         print("Initializing database tables...")
         db.create_all()
 
@@ -434,13 +435,17 @@ def seed_database():
                 bus_seats = Seat.query.filter_by(bus_id=target_schedule.bus_id).order_by(Seat.seat_number).all()
 
                 if len(bus_seats) >= 2:
+                    pricing = calculate_fare_and_gst(target_schedule.fare, 2)
                     booking_code = generate_booking_id()
                     sample_booking = Booking(
                         booking_id=booking_code,
                         user_id=passenger2.id,
                         schedule_id=target_schedule.id,
                         total_passengers=2,
-                        total_amount=target_schedule.fare * 2,
+                        base_amount=pricing['base_fare'],
+                        gst_rate=pricing['gst_rate'],
+                        gst_amount=pricing['gst_amount'],
+                        total_amount=pricing['grand_total'],
                         booking_status='CONFIRMED',
                         created_at=datetime.now(timezone.utc) - timedelta(hours=2)
                     )
@@ -469,7 +474,7 @@ def seed_database():
                         booking_id=sample_booking.id,
                         transaction_id=generate_transaction_id(),
                         payment_method="UPI",
-                        amount=target_schedule.fare * 2,
+                        amount=sample_booking.total_amount,
                         payment_status="SUCCESS",
                         paid_at=datetime.now(timezone.utc) - timedelta(hours=2)
                     )

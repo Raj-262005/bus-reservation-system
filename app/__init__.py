@@ -13,7 +13,35 @@ def create_app(config_class=Config):
 
     # Ensure required directories exist
     tickets_dir = os.path.join(app.root_path, 'static', 'generated_tickets')
-    os.makedirs(tickets_dir, exist_ok=True)
+    try:
+        os.makedirs(tickets_dir, exist_ok=True)
+    except OSError:
+        pass
+
+    # Automatic schema migration for GST columns
+    with app.app_context():
+        try:
+            from sqlalchemy import inspect, text
+            inspector = inspect(db.engine)
+            if 'bookings' in inspector.get_table_names():
+                existing_cols = {c['name'] for c in inspector.get_columns('bookings')}
+                with db.engine.connect() as conn:
+                    if 'base_amount' not in existing_cols:
+                        conn.execute(text("ALTER TABLE bookings ADD COLUMN base_amount FLOAT DEFAULT 0.0;"))
+                    if 'gst_rate' not in existing_cols:
+                        conn.execute(text("ALTER TABLE bookings ADD COLUMN gst_rate FLOAT DEFAULT 5.0;"))
+                    if 'gst_amount' not in existing_cols:
+                        conn.execute(text("ALTER TABLE bookings ADD COLUMN gst_amount FLOAT DEFAULT 0.0;"))
+                    conn.execute(text("""
+                        UPDATE bookings 
+                        SET gst_rate = 5.0, 
+                            base_amount = ROUND(total_amount / 1.05, 2), 
+                            gst_amount = ROUND(total_amount - (total_amount / 1.05), 2)
+                        WHERE (base_amount = 0.0 OR base_amount IS NULL) AND total_amount > 0;
+                    """))
+                    conn.commit()
+        except Exception:
+            pass
 
     # Register Blueprints
     from app.routes.auth_routes import auth_bp
