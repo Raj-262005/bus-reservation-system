@@ -67,11 +67,18 @@ def seed_database():
         print("Initializing database tables...")
         db.create_all()
 
-        # Optimize SQLite for large high-speed read/write performance
+        # Optimize database if running on SQLite or PostgreSQL
         with db.engine.connect() as con:
-            con.execute(db.text("PRAGMA synchronous = NORMAL;"))
-            con.execute(db.text("CREATE INDEX IF NOT EXISTS idx_schedules_search ON schedules(route_id, journey_date, status);"))
-            con.commit()
+            if db.engine.name == 'sqlite':
+                try:
+                    con.execute(db.text("PRAGMA synchronous = NORMAL;"))
+                except Exception:
+                    pass
+            try:
+                con.execute(db.text("CREATE INDEX IF NOT EXISTS idx_schedules_search ON schedules(route_id, journey_date, status);"))
+                con.commit()
+            except Exception as e:
+                print(f"Note on index creation: {e}")
 
         print("Checking / Seeding Users...")
         # 1. Admin User

@@ -11,11 +11,14 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(days=2)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Database setup: MySQL or SQLite
+    # Database setup: PostgreSQL (Render / Production), MySQL, or SQLite (Local fallback)
     use_mysql = os.environ.get('USE_MYSQL', 'False').lower() in ('true', '1', 't', 'yes')
     custom_db_url = os.environ.get('DATABASE_URL')
 
     if custom_db_url:
+        # Render provides postgres:// which SQLAlchemy 1.4+ / 2.0+ requires as postgresql://
+        if custom_db_url.startswith('postgres://'):
+            custom_db_url = custom_db_url.replace('postgres://', 'postgresql://', 1)
         SQLALCHEMY_DATABASE_URI = custom_db_url
     elif use_mysql:
         mysql_user = os.environ.get('MYSQL_USER', 'root')
@@ -53,6 +56,11 @@ class Config:
     else:
         sqlite_path = os.path.join(basedir, 'bus_reservation.db')
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{sqlite_path}"
+
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+    }
 
     # Payment Settings
     RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')

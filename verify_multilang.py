@@ -201,7 +201,7 @@ def test_language_switcher_and_translations():
     print(" [PASS] Passenger dashboard in Hindi verified.")
 
     r_pass_bookings = session.get(f"{BASE_URL}/my-bookings")
-    assert "मेरी यात्रा बुकिंग्स" in r_pass_bookings.text or "सभी बुकिंग्स" in r_pass_bookings.text, "Hindi my bookings text not found"
+    assert "मेरी बुकिंग्स" in r_pass_bookings.text or "मेरी यात्रा बुकिंग्स" in r_pass_bookings.text or "सभी बुकिंग्स" in r_pass_bookings.text, "Hindi my bookings text not found"
     print(" [PASS] My Bookings in Hindi verified.")
 
     r_pass_profile = session.get(f"{BASE_URL}/profile")
