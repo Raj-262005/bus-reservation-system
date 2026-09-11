@@ -3,62 +3,50 @@
 {% block title %}{{ _('Bus Reservation System') }} - {{ _('hero_title') }}{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="hero-section">
-    <div class="container text-center py-4">
-        <h1 class="display-4 fw-bold mb-3">{{ _('hero_title') }}</h1>
-        <p class="lead mb-4 text-light opacity-90 mx-auto" style="max-width: 650px;">
-            {{ _('hero_subtitle') }}
-        </p>
+<section class="home-hero">
+    <div class="container hero-inner">
+        <div class="hero-copy">
+            <span class="eyebrow"><i class="bi bi-stars me-2"></i>Safe Journeys <b>•</b> Better Tomorrows</span>
+            <h1>Travel Smarter<br><span>Travel Together</span></h1>
+            <p>{{ _('hero_subtitle') }}</p>
+            <div class="hero-trust">
+                <span><i class="bi bi-shield-check"></i> Safe &amp; Secure</span>
+                <span><i class="bi bi-lightning-charge"></i> Instant Confirmation</span>
+                <span><i class="bi bi-people"></i> Thousands of Travelers</span>
+            </div>
+        </div>
     </div>
 </section>
 
-<!-- Search Form Card -->
-<div class="container">
-    <div class="search-card">
-        <h4 class="fw-bold mb-4 text-primary d-flex align-items-center gap-2">
-            <i class="bi bi-compass"></i> {{ _('search_available_schedules') }}
-        </h4>
-        <form action="{{ url_for('passenger.search') }}" method="GET" class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label for="source" class="form-label fw-semibold text-secondary">
-                    <i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ _('from_source') }}
-                </label>
-                <input list="sourcesList" class="form-control form-control-lg" id="source" name="source" 
-                       placeholder="e.g. Mumbai" value="{{ request.args.get('source', '') }}" required autocomplete="off">
-                <datalist id="sourcesList">
-                    {% for src in sources %}
-                        <option value="{{ src }}">
-                    {% endfor %}
-                </datalist>
+<section class="container search-wrap" aria-labelledby="search-heading">
+    <div class="search-card premium-search-card">
+        <div class="search-heading">
+            <div class="section-icon"><i class="bi bi-compass"></i></div>
+            <div>
+                <span class="overline">YOUR NEXT JOURNEY STARTS HERE</span>
+                <h2 id="search-heading">{{ _('search_available_schedules') }}</h2>
+                <p>{{ _('Find and book your next journey in seconds') }}</p>
             </div>
-
-            <div class="col-md-3">
-                <label for="destination" class="form-label fw-semibold text-secondary">
-                    <i class="bi bi-geo-fill text-success me-1"></i> {{ _('to_destination') }}
-                </label>
-                <input list="destinationsList" class="form-control form-control-lg" id="destination" name="destination" 
-                       placeholder="e.g. Pune" value="{{ request.args.get('destination', '') }}" required autocomplete="off">
-                <datalist id="destinationsList">
-                    {% for dst in destinations %}
-                        <option value="{{ dst }}">
-                    {% endfor %}
-                </datalist>
+        </div>
+        <form action="{{ url_for('passenger.search') }}" method="GET" class="search-form">
+            <div class="search-field">
+                <label for="source"><i class="bi bi-geo-alt-fill"></i>{{ _('from_source') }}</label>
+                <input list="sourcesList" id="source" name="source" placeholder="e.g. Mumbai" value="{{ request.args.get('source', '') }}" required autocomplete="off">
+                <datalist id="sourcesList">{% for src in sources %}<option value="{{ src }}">{% endfor %}</datalist>
             </div>
-
-            <div class="col-md-3">
-                <label for="journey_date" class="form-label fw-semibold text-secondary">
-                    <i class="bi bi-calendar-event text-primary me-1"></i> {{ _('date_of_journey') }}
-                </label>
-                <input type="date" class="form-control form-control-lg" id="journey_date" name="journey_date" 
-                       min="{{ today_str }}" value="{{ request.args.get('journey_date', today_str) }}" required>
+            <div class="route-swap" aria-hidden="true"><i class="bi bi-arrow-right"></i></div>
+            <div class="search-field">
+                <label for="destination"><i class="bi bi-geo-fill"></i>{{ _('to_destination') }}</label>
+                <input list="destinationsList" id="destination" name="destination" placeholder="e.g. Pune" value="{{ request.args.get('destination', '') }}" required autocomplete="off">
+                <datalist id="destinationsList">{% for dst in destinations %}<option value="{{ dst }}">{% endfor %}</datalist>
             </div>
-
-            <div class="col-md-3">
-                <label for="bus_type" class="form-label fw-semibold text-secondary">
-                    <i class="bi bi-funnel text-warning me-1"></i> {{ _('bus_type') }}
-                </label>
-                <select class="form-select form-select-lg" id="bus_type" name="bus_type">
+            <div class="search-field">
+                <label for="journey_date"><i class="bi bi-calendar3"></i>{{ _('date_of_journey') }}</label>
+                <input type="date" id="journey_date" name="journey_date" min="{{ today_str }}" value="{{ request.args.get('journey_date', today_str) }}" required>
+            </div>
+            <div class="search-field">
+                <label for="bus_type"><i class="bi bi-bus-front"></i>{{ _('bus_type') }}</label>
+                <select id="bus_type" name="bus_type">
                     <option value="ALL">{{ _('all_bus_types') }}</option>
                     <option value="AC Sleeper">{{ _('ac_sleeper') }}</option>
                     <option value="Non-AC Sleeper">{{ _('non_ac_sleeper') }}</option>
@@ -70,154 +58,31 @@
                     <option value="Seater">{{ _('seater_all') }}</option>
                 </select>
             </div>
-
-            <div class="col-12 mt-4 text-center">
-                <button type="submit" class="btn btn-warning btn-lg px-5 py-3 fw-bold text-dark shadow-sm">
-                    <i class="bi bi-search me-2"></i> {{ _('search_buses') }}
-                </button>
-            </div>
+            <button type="submit" class="search-submit"><i class="bi bi-search"></i>{{ _('search_buses') }}</button>
         </form>
     </div>
-</div>
+</section>
 
-<!-- Popular Routes Section -->
-<section class="container my-5 py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold mb-1">{{ _('popular_routes') }}</h3>
-            <p class="text-muted mb-0">{{ _('popular_routes_sub') }}</p>
-        </div>
-    </div>
+<section class="container feature-strip" aria-label="BusReserve services">
+    <div class="feature-item"><span class="feature-icon blue"><i class="bi bi-mouse2"></i></span><div><strong>Easy Booking</strong><small>Book in just a few clicks</small></div></div>
+    <div class="feature-item"><span class="feature-icon green"><i class="bi bi-grid-3x3-gap"></i></span><div><strong>Live Seat Selection</strong><small>Choose your preferred seat</small></div></div>
+    <div class="feature-item"><span class="feature-icon gold"><i class="bi bi-lock"></i></span><div><strong>Secure Payments</strong><small>Safe &amp; encrypted payment</small></div></div>
+    <div class="feature-item"><span class="feature-icon coral"><i class="bi bi-headset"></i></span><div><strong>24/7 Support</strong><small>We're here to help</small></div></div>
+</section>
 
-    <div class="row g-4">
+<section class="container routes-section" aria-labelledby="routes-heading">
+    <div class="section-heading-row"><div><span class="overline">EXPLORE THE ROAD AHEAD</span><h2 id="routes-heading">{{ _('popular_routes') }}</h2><p>{{ _('popular_routes_sub') }}</p></div><a class="text-link" href="{{ url_for('passenger.search') }}">{{ _('View All Routes') }} <i class="bi bi-arrow-up-right"></i></a></div>
+    <div class="routes-grid">
         {% for r in routes[:4] %}
-        <div class="col-md-6 col-lg-3">
-            <div class="custom-card p-4 h-100 d-flex flex-column justify-content-between">
-                <div>
-                    <span class="badge bg-primary-subtle text-primary mb-3"><i class="bi bi-clock me-1"></i> {{ r.estimated_duration }}</span>
-                    <h5 class="fw-bold text-dark mb-1">{{ r.source_city }}</h5>
-                    <div class="text-muted my-1"><i class="bi bi-arrow-down-short fs-4"></i></div>
-                    <h5 class="fw-bold text-dark mb-3">{{ r.destination_city }}</h5>
-                    <p class="small text-secondary mb-0"><i class="bi bi-signpost-2 me-1"></i> {{ _('distance') }}: {{ r.distance_km }} km</p>
-                </div>
-                <div class="mt-4 pt-3 border-top">
-                    <a href="{{ url_for('passenger.search', source=r.source_city, destination=r.destination_city, journey_date=today_str) }}" 
-                       class="btn btn-outline-primary w-100 fw-semibold btn-sm">
-                        {{ _('view_schedules') }} <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
+        <a class="route-card route-card-{{ loop.index }}" href="{{ url_for('passenger.search', source=r.source_city, destination=r.destination_city, journey_date=today_str) }}">
+            <div class="route-image"><span class="route-duration"><i class="bi bi-clock"></i> {{ r.estimated_duration }}</span><span class="route-arrow"><i class="bi bi-arrow-up-right"></i></span></div>
+            <div class="route-card-body"><span class="route-cities">{{ r.source_city }} <i class="bi bi-arrow-right"></i> {{ r.destination_city }}</span><strong>{{ r.source_city }} to {{ r.destination_city }}</strong><small><i class="bi bi-calendar2-check"></i> Multiple departures daily</small></div>
+        </a>
         {% endfor %}
     </div>
 </section>
 
-<!-- How It Works Section -->
-<section class="bg-white py-5 border-top border-bottom">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h3 class="fw-bold">{{ _('How It Works') }}</h3>
-            <p class="text-muted">{{ _('Book your bus journey in 4 seamless steps') }}</p>
-        </div>
-
-        <div class="row g-4 text-center">
-            <div class="col-md-3">
-                <div class="p-4">
-                    <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
-                        <i class="bi bi-search fs-3"></i>
-                    </div>
-                    <h5 class="fw-bold">1. {{ _('search_buses') }}</h5>
-                    <p class="small text-muted">{{ _('step_search_desc') }}</p>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="p-4">
-                    <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
-                        <i class="bi bi-grid-3x3-gap-fill fs-3"></i>
-                    </div>
-                    <h5 class="fw-bold">2. {{ _('choose_seats') }}</h5>
-                    <p class="small text-muted">{{ _('step_select_desc') }}</p>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="p-4">
-                    <div class="rounded-circle bg-warning-subtle text-warning d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
-                        <i class="bi bi-credit-card-2-front-fill fs-3"></i>
-                    </div>
-                    <h5 class="fw-bold">3. {{ _('secure_payment') }}</h5>
-                    <p class="small text-muted">{{ _('step_pay_desc') }}</p>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="p-4">
-                    <div class="rounded-circle bg-info-subtle text-info d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
-                        <i class="bi bi-file-earmark-pdf-fill fs-3"></i>
-                    </div>
-                    <h5 class="fw-bold">4. {{ _('download_ticket') }}</h5>
-                    <p class="small text-muted">{{ _('step_ticket_desc') }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Why Choose BusReserve -->
-<section class="container my-5 py-4">
-    <div class="row align-items-center g-5">
-        <div class="col-lg-6">
-            <h3 class="fw-bold mb-3">{{ _('why_choose_us') }}</h3>
-            <p class="text-secondary mb-4">
-                {{ _('footer_desc') }}
-            </p>
-            <div class="d-flex gap-3 mb-3">
-                <div class="text-primary fs-3"><i class="bi bi-shield-lock-fill"></i></div>
-                <div>
-                    <h6 class="fw-bold mb-1">{{ _('double_booking_lock') }}</h6>
-                    <p class="small text-muted mb-0">{{ _('zero_double_booking_desc') }}</p>
-                </div>
-            </div>
-            <div class="d-flex gap-3 mb-3">
-                <div class="text-success fs-3"><i class="bi bi-arrow-repeat"></i></div>
-                <div>
-                    <h6 class="fw-bold mb-1">{{ _('cancellation_refund') }}</h6>
-                    <p class="small text-muted mb-0">{{ _('cancel_ticket_help') }}</p>
-                </div>
-            </div>
-            <div class="d-flex gap-3">
-                <div class="text-warning fs-3"><i class="bi bi-device-ssd"></i></div>
-                <div>
-                    <h6 class="fw-bold mb-1">{{ _('feature_seats_title') }}</h6>
-                    <p class="small text-muted mb-0">{{ _('feature_seats_desc') }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6">
-            <div class="custom-card p-4 bg-primary text-white text-center rounded-4 shadow">
-                <i class="bi bi-award-fill display-3 text-warning mb-3"></i>
-                <h4 class="fw-bold mb-2">{{ _('feature_safe_title') }}</h4>
-                <p class="opacity-90 mb-4">
-                    {{ _('feature_safe_desc') }}
-                </p>
-                <div class="row g-2 text-center">
-                    <div class="col-4 border-end border-white-50">
-                        <h4 class="fw-bold mb-0">500+</h4>
-                        <small class="opacity-75">{{ _('daily_trips') }}</small>
-                    </div>
-                    <div class="col-4 border-end border-white-50">
-                        <h4 class="fw-bold mb-0">100%</h4>
-                        <small class="opacity-75">{{ _('verified_seats') }}</small>
-                    </div>
-                    <div class="col-4">
-                        <h4 class="fw-bold mb-0">24/7</h4>
-                        <small class="opacity-75">{{ _('support_247') }}</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<section class="journey-band">
+    <div class="container journey-content"><div><span class="overline">THE BUSRESERVE DIFFERENCE</span><h2>{{ _('why_choose_us') }}</h2><p>{{ _('footer_desc') }}</p></div><div class="journey-stats"><div><strong>500<span>+</span></strong><small>{{ _('daily_trips') }}</small></div><div><strong>100<span>%</span></strong><small>{{ _('verified_seats') }}</small></div><div><strong>24/7</strong><small>{{ _('support_247') }}</small></div></div></div>
 </section>
 {% endblock %}

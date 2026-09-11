@@ -21,12 +21,12 @@
     <!-- Main Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top py-2">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('passenger.home') }}">
-                <i class="bi bi-bus-front-fill text-warning fs-3"></i>
-                <span class="fs-4">BusReserve</span>
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('passenger.home') }}" aria-label="BusReserve home">
+                <span class="brand-mark"><i class="bi bi-bus-front-fill"></i></span>
+                <span class="fs-4 brand-name"><span>Bus</span><strong>Reserve</strong></span>
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
