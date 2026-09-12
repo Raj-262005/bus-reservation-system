@@ -20,22 +20,3 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
-
-/**
- * Quick fill credentials on Login page for instant demo testing
- */
-function fillCredentials(email, password) {
-    const emailField = document.getElementById('email');
-    const pwdField = document.getElementById('password');
-    if (emailField && pwdField) {
-        emailField.value = email;
-        pwdField.value = password;
-        // Highlight briefly
-        emailField.classList.add('is-valid');
-        pwdField.classList.add('is-valid');
-        setTimeout(() => {
-            emailField.classList.remove('is-valid');
-            pwdField.classList.remove('is-valid');
-        }, 1500);
-    }
-}

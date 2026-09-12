@@ -7,6 +7,9 @@ from app.services.booking_service import BookingService
 
 app = create_app()
 
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
+
 with app.app_context():
     client = app.test_client()
 
@@ -94,7 +97,8 @@ with app.app_context():
 
     print("\n--- 9. Testing Admin Dashboard & Reports ---")
     client.get('/logout')
-    client.post('/login', data={'email': 'admin@busreservation.com', 'password': 'Admin@123'})
+    assert ADMIN_EMAIL and ADMIN_PASSWORD, "Set ADMIN_EMAIL and ADMIN_PASSWORD to run admin checks."
+    client.post('/login', data={'email': ADMIN_EMAIL, 'password': ADMIN_PASSWORD})
     admin_dash = client.get('/admin/dashboard')
     assert admin_dash.status_code == 200
     assert b"Admin Dashboard" in admin_dash.data

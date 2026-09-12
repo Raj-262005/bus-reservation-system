@@ -11,6 +11,9 @@ from app.services.ticket_service import TicketService
 
 app = create_app()
 
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
+
 def run_audit():
     print("=" * 70)
     print(" BUS RESERVATION SYSTEM - COMPREHENSIVE BACKEND & DATABASE AUDIT")
@@ -349,7 +352,8 @@ def run_audit():
 
         # 3. Admin can access Admin pages
         client.get('/logout')
-        client.post('/login', data={'email': 'admin@busreservation.com', 'password': 'Admin@123'})
+        assert ADMIN_EMAIL and ADMIN_PASSWORD, "Set ADMIN_EMAIL and ADMIN_PASSWORD to run admin audit checks."
+        client.post('/login', data={'email': ADMIN_EMAIL, 'password': ADMIN_PASSWORD})
         admin_access = client.get('/admin/dashboard')
         assert admin_access.status_code == 200
         assert b"Admin Dashboard" in admin_access.data

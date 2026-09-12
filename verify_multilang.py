@@ -12,8 +12,12 @@ Tests:
   8. Responsive selector presence in navbar
 """
 
+import os
 import sys
 import io
+
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
 
 # Ensure UTF-8 output on Windows console
 if sys.stdout.encoding != 'utf-8':
@@ -137,9 +141,10 @@ def test_language_switcher_and_translations():
     session.get(f"{BASE_URL}/set-language/mr")
     
     # Login as Admin
+    assert ADMIN_EMAIL and ADMIN_PASSWORD, "Set ADMIN_EMAIL and ADMIN_PASSWORD to run admin checks."
     login_data = {
-        "email": "admin@busreservation.com",
-        "password": "Admin@123"
+        "email": ADMIN_EMAIL,
+        "password": ADMIN_PASSWORD
     }
     r_admin_login = session.post(f"{BASE_URL}/login", data=login_data, allow_redirects=True)
     assert r_admin_login.status_code == 200
