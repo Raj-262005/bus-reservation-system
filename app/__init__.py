@@ -74,6 +74,19 @@ def create_app(config_class=Config):
         else:
             g.lang = 'en'
 
+        if 'user_id' in session:
+            user = db.session.get(User, session['user_id'])
+            if not user or not user.is_active or user.role != session.get('role'):
+                session.clear()
+
+    @app.after_request
+    def set_security_headers(response):
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
+        return response
+
     @app.route('/set-language/<lang>')
     def set_language(lang):
         valid_langs = ['en', 'hi', 'mr']

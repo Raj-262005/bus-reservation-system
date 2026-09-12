@@ -82,18 +82,24 @@ def seed_database(app_instance=None):
                 print(f"Note on index creation: {e}")
 
         print("Checking / Seeding Users...")
-        # 1. Admin User
-        admin = User.query.filter_by(email='admin@busreservation.com').first()
-        if not admin:
-            admin = User(
-                name="System Administrator",
-                email="admin@busreservation.com",
-                phone="9876543210",
-                role="admin",
-                is_active=True
-            )
-            admin.set_password("Admin@123")
-            db.session.add(admin)
+        admin_email = os.environ.get('ADMIN_EMAIL', 'admin@local.internal').strip() or 'admin@local.internal'
+        admin_password = os.environ.get('ADMIN_PASSWORD')
+
+        if admin_password:
+            admin = User.query.filter_by(email=admin_email).first()
+            if not admin:
+                admin = User(
+                    name="System Administrator",
+                    email=admin_email,
+                    phone="9876543210",
+                    role="admin",
+                    is_active=True
+                )
+                admin.set_password(admin_password)
+                db.session.add(admin)
+            else:
+                admin.role = 'admin'
+                admin.is_active = True
 
         # 2. Operator User
         operator = User.query.filter_by(email='operator@busreservation.com').first()
@@ -501,10 +507,8 @@ def seed_database(app_instance=None):
             print(f"Existing bookings detected ({Booking.query.count()} bookings). Preserving existing bookings intact.")
 
         print("\n=======================================================")
-        print("DEMO CREDENTIALS FOR TESTING:")
-        print("Admin:     admin@busreservation.com     / Admin@123")
-        print("Operator:  operator@busreservation.com  / Operator@123")
-        print("Passenger: passenger@busreservation.com / Passenger@123")
+        print("Environment-driven admin login is enabled.")
+        print("Operator and passenger demo accounts remain available for local testing.")
         print("=======================================================\n")
 
 

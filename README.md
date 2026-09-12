@@ -19,17 +19,18 @@ A full-stack, production-grade **Bus Reservation System** engineered for an acad
 
 ---
 
-## Demo Login Credentials
+## Secure Admin Access
 
-For testing and evaluation, the database comes pre-populated with demo accounts:
+Administrative access is configured privately through environment variables and is never exposed in the public UI or source control.
 
-| Role | Email Address | Password | Description |
-| :--- | :--- | :--- | :--- |
-| **Admin** | `admin@busreservation.com` | `Admin@123` | Full administrative control, fleet, schedules & reports |
-| **Bus Operator** | `operator@busreservation.com` | `Operator@123` | Assigned buses, trips, passenger boarding manifests |
-| **Passenger** | `passenger@busreservation.com` | `Passenger@123` | Search, seat booking, payment, cancellation & tickets |
+Set the following in your local `.env` file or deployment environment before starting the app:
 
-> **Tip:** On the `/login` page, you will find convenient **1-click quick fill buttons** for each role!
+```env
+ADMIN_EMAIL=admin@yourdomain.com
+ADMIN_PASSWORD=your-private-admin-password
+```
+
+Passenger and operator demo accounts may still be seeded for non-admin testing, but the admin credential is intentionally private and must not be committed to GitHub or embedded in frontend code.
 
 ---
 
@@ -137,7 +138,7 @@ To connect to your local **MySQL Server** (e.g., MySQL Community Server 8.0 runn
 5. Re-check the bus seat map: the cancelled seat is **immediately released and available** for other passengers to book!
 
 ### 4. Test Admin Panel Functions
-1. Log out, then log in as `admin@busreservation.com` (password: `Admin@123`).
+1. Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in your environment before starting the app.
 2. Explore:
    - **Dashboard:** View revenue, total bookings, and live metrics.
    - **Manage Buses:** Add a new bus with 32 seats. Notice how the system automatically creates 32 physical seat records (`1A`, `1B`...).
@@ -147,7 +148,7 @@ To connect to your local **MySQL Server** (e.g., MySQL Community Server 8.0 runn
    - **Reports & Analytics:** Filter revenue and ticket volumes by date range, bus, or route. Click **Print Report**.
 
 ### 5. Test Operator Panel Functions
-1. Log in as `operator@busreservation.com` (password: `Operator@123`).
+1. Log in with the seeded operator account configured in your environment or the default local demo account.
 2. View assigned buses and upcoming scheduled trips.
 3. Click **Boarding Manifest** on any schedule to view the passenger roster, seat assignments, and check-in sheet.
 4. Verify that the operator cannot access `/admin/*` management routes.

@@ -16,6 +16,11 @@ def register():
         phone = request.form.get('phone', '').strip()
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
+        submitted_role = (request.form.get('role') or '').strip().lower()
+
+        if submitted_role and submitted_role != 'passenger':
+            flash("Role assignment is not permitted during registration.", "danger")
+            return render_template('auth/register.html', name=name, email=email, phone=phone)
 
         # Validations
         errors = []

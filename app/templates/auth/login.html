@@ -50,23 +50,8 @@
                     <p class="small text-muted mb-0">{{ _('dont_have_account') }} <a href="{{ url_for('auth.register') }}" class="text-primary fw-semibold">{{ _('register_passenger') }}</a></p>
                 </div>
 
-                <!-- Academic Quick Demo Buttons -->
-                <div class="mt-4 p-3 bg-light rounded-3 border">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <small class="fw-bold text-dark"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> {{ _('quick_demo_logins') }}</small>
-                        <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">{{ _('one_click_fill') }}</span>
-                    </div>
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-danger text-start py-1" onclick="fillCredentials('admin@busreservation.com', 'Admin@123')">
-                            <i class="bi bi-shield-lock me-1"></i> <strong>{{ _('admin') }}:</strong> admin@busreservation.com
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-info text-start py-1 text-dark" onclick="fillCredentials('operator@busreservation.com', 'Operator@123')">
-                            <i class="bi bi-truck-front me-1"></i> <strong>{{ _('operator') }}:</strong> operator@busreservation.com
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-success text-start py-1" onclick="fillCredentials('passenger@busreservation.com', 'Passenger@123')">
-                            <i class="bi bi-person me-1"></i> <strong>{{ _('passenger') }}:</strong> passenger@busreservation.com
-                        </button>
-                    </div>
+                <div class="mt-4 text-center small text-muted">
+                    <span>Sign in to your account</span>
                 </div>
             </div>
         </div>
